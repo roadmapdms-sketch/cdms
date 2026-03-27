@@ -1,0 +1,352 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  firstName String
+  lastName  String
+  role      String   @default("USER")
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  createdEvents   Event[]         @relation("EventCreator")
+  attendance      Attendance[]
+  financialRecords FinancialRecord[]
+  communications  Communication[]
+  volunteerAssignments VolunteerAssignment[]
+  pastoralCareRecords PastoralCareRecord[]
+  inventoryCheckouts InventoryCheckout[]
+
+  @@map("users")
+}
+
+model Member {
+  id            String    @id @default(cuid())
+  firstName     String
+  lastName      String
+  email         String?   @unique
+  phone         String?
+  dateOfBirth   DateTime?
+  gender        String?
+  maritalStatus String?
+  address       String?
+  city          String?
+  state         String?
+  zipCode       String?
+  country       String?
+  membershipDate DateTime?
+  status        String    @default("ACTIVE")
+  photo         String?
+  notes         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  family           FamilyMember[]
+  attendance       Attendance[]
+  financialRecords FinancialRecord[]
+  communications   Communication[]
+  volunteerAssignments VolunteerAssignment[]
+  pastoralCareRecords PastoralCareRecord[]
+  spiritualMilestones SpiritualMilestone[]
+  inventoryCheckouts InventoryCheckout[]
+
+  @@map("members")
+}
+
+model Family {
+  id          String   @id @default(cuid())
+  name        String
+  address     String?
+  phone       String?
+  email       String?
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  members FamilyMember[]
+
+  @@map("families")
+}
+
+model FamilyMember {
+  id       String @id @default(cuid())
+  familyId String
+  memberId String
+  role     String // e.g., "Father", "Mother", "Child", "Guardian"
+  isPrimary Boolean @default(false)
+
+  // Relations
+  family  Family  @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  member  Member  @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@unique([familyId, memberId])
+  @@map("family_members")
+}
+
+model Ministry {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  leaderId    String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  volunteerAssignments VolunteerAssignment[]
+
+  @@map("ministries")
+}
+
+model Event {
+  id          String        @id @default(cuid())
+  title       String
+  description String?
+  type        String
+  startDate   DateTime
+  endDate     DateTime?
+  location    String?
+  maxCapacity Int?
+  isRecurring Boolean       @default(false)
+  recurringPattern String? // e.g., "weekly", "monthly"
+  status      String        @default("PLANNED")
+  createdBy   String
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  // Relations
+  creator  User    @relation("EventCreator", fields: [createdBy], references: [id])
+  expenses Expense[]
+
+  @@map("events")
+}
+
+model Attendance {
+  id        String   @id @default(cuid())
+  eventId   String
+  memberId  String
+  userId    String? // Who recorded the attendance
+  checkIn   DateTime
+  checkOut  DateTime?
+  status    String   @default("PRESENT")
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  member Member @relation(fields: [memberId], references: [id])
+  user   User?  @relation(fields: [userId], references: [id])
+
+  @@unique([eventId, memberId])
+  @@map("attendance")
+}
+
+model FinancialRecord {
+  id            String           @id @default(cuid())
+  memberId      String?
+  userId        String
+  type          String
+  amount        Float
+  paymentMethod String?
+  description   String?
+  reference     String? // Check number, transaction ID, etc.
+  date          DateTime
+  status        String           @default("RECORDED")
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  // Relations
+  member Member? @relation(fields: [memberId], references: [id])
+  user   User    @relation(fields: [userId], references: [id])
+
+  @@map("financial_records")
+}
+
+model Communication {
+  id        String   @id @default(cuid())
+  memberId  String?
+  userId    String
+  type      String
+  subject   String
+  content   String
+  method    String
+  status    String   @default("PENDING")
+  scheduled DateTime?
+  sent      DateTime?
+  response  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  member Member? @relation(fields: [memberId], references: [id])
+  user   User    @relation(fields: [userId], references: [id])
+
+  @@map("communications")
+}
+
+model VolunteerAssignment {
+  id         String   @id @default(cuid())
+  memberId   String
+  userId     String
+  ministryId String?
+  eventId    String?
+  role       String
+  status     String   @default("ASSIGNED")
+  startDate  DateTime
+  endDate    DateTime?
+  notes      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relations
+  member  Member   @relation(fields: [memberId], references: [id])
+  user    User     @relation(fields: [userId], references: [id])
+  ministry Ministry? @relation(fields: [ministryId], references: [id])
+
+  @@map("volunteer_assignments")
+}
+
+model PastoralCareRecord {
+  id          String   @id @default(cuid())
+  memberId    String
+  userId      String
+  type        String
+  description String
+  status      String   @default("OPEN")
+  followUpDate DateTime?
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  member Member @relation(fields: [memberId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@map("pastoral_care_records")
+}
+
+model InventoryItem {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  category    String
+  quantity    Int      @default(1)
+  condition   String   @default("GOOD")
+  location    String?
+  purchaseDate DateTime?
+  purchaseCost Float?
+  currentValue Float?
+  status      String   @default("AVAILABLE")
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  checkouts InventoryCheckout[]
+
+  @@map("inventory_items")
+}
+
+model InventoryCheckout {
+  id         String   @id @default(cuid())
+  itemId     String
+  userId     String
+  memberId   String?
+  checkOutDate DateTime
+  dueDate    DateTime?
+  returnDate DateTime?
+  notes      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relations
+  item InventoryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id])
+  member Member? @relation(fields: [memberId], references: [id])
+
+  @@map("inventory_checkouts")
+}
+
+model Expense {
+  id          String   @id @default(cuid())
+  description String
+  amount      Float
+  category    String
+  vendor      String?
+  date        DateTime
+  status      String   @default("PENDING")
+  approvedBy  String?
+  approvedAt  DateTime?
+  eventId     String?
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  event Event? @relation(fields: [eventId], references: [id])
+
+  @@map("expenses")
+}
+
+model Vendor {
+  id          String   @id @default(cuid())
+  name        String
+  contactPerson String?
+  email       String?
+  phone       String?
+  address     String?
+  services    String?
+  notes       String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("vendors")
+}
+
+model Budget {
+  id          String   @id @default(cuid())
+  category    String
+  description String?
+  amount      Float
+  period      String   // e.g., "2024-Q1", "2024-Annual"
+  startDate   DateTime
+  endDate     DateTime
+  spent       Float    @default(0)
+  status      String   @default("ACTIVE")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("budgets")
+}
+
+model SpiritualMilestone {
+  id          String   @id @default(cuid())
+  memberId    String
+  type        String   // e.g., "Baptism", "Confirmation", "Marriage"
+  date        DateTime
+  description String?
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  member Member @relation(fields: [memberId], references: [id])
+
+  @@map("spiritual_milestones")
+}

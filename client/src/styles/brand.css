@@ -1,0 +1,144 @@
+/* Church Data Management System - Brand Colors */
+
+:root {
+  /* Primary Brand Colors */
+  --brand-mustard: #e7b123;
+  --brand-mustard-hover: #d4a01f;
+  --brand-mustard-light: rgba(231, 177, 35, 0.1);
+  --brand-mustard-lighter: rgba(231, 177, 35, 0.2);
+  
+  --brand-gray: #eeedee;
+  --brand-gray-hover: #e0e0e0;
+  --brand-gray-light: rgba(238, 237, 238, 0.5);
+  
+  --brand-burgundy: #7a0f1a;
+  --brand-burgundy-hover: #6a0e18;
+  --brand-burgundy-light: rgba(122, 15, 26, 0.1);
+  --brand-burgundy-lighter: rgba(122, 15, 26, 0.2);
+}
+
+/* Custom CSS Classes for Brand Colors */
+.bg-brand-mustard { background-color: var(--brand-mustard); }
+.bg-brand-mustard-hover { background-color: var(--brand-mustard-hover); }
+.bg-brand-mustard-light { background-color: var(--brand-mustard-light); }
+.bg-brand-mustard-lighter { background-color: var(--brand-mustard-lighter); }
+
+.bg-brand-gray { background-color: var(--brand-gray); }
+.bg-brand-gray-hover { background-color: var(--brand-gray-hover); }
+.bg-brand-gray-light { background-color: var(--brand-gray-light); }
+
+.bg-brand-burgundy { background-color: var(--brand-burgundy); }
+.bg-brand-burgundy-hover { background-color: var(--brand-burgundy-hover); }
+.bg-brand-burgundy-light { background-color: var(--brand-burgundy-light); }
+.bg-brand-burgundy-lighter { background-color: var(--brand-burgundy-lighter); }
+
+.text-brand-mustard { color: var(--brand-mustard); }
+.text-brand-mustard-hover { color: var(--brand-mustard-hover); }
+
+.text-brand-gray { color: var(--brand-gray); }
+.text-brand-gray-hover { color: var(--brand-gray-hover); }
+
+.text-brand-burgundy { color: var(--brand-burgundy); }
+.text-brand-burgundy-hover { color: var(--brand-burgundy-hover); }
+
+.border-brand-mustard { border-color: var(--brand-mustard); }
+.border-brand-gray { border-color: var(--brand-gray); }
+.border-brand-burgundy { border-color: var(--brand-burgundy); }
+
+/* Hover Effects */
+.hover\:bg-brand-mustard:hover { background-color: var(--brand-mustard); }
+.hover\:bg-brand-mustard-hover:hover { background-color: var(--brand-mustard-hover); }
+.hover\:bg-brand-mustard-light:hover { background-color: var(--brand-mustard-light); }
+
+.hover\:bg-brand-gray:hover { background-color: var(--brand-gray); }
+.hover\:bg-brand-gray-hover:hover { background-color: var(--brand-gray-hover); }
+
+.hover\:bg-brand-burgundy:hover { background-color: var(--brand-burgundy); }
+.hover\:bg-brand-burgundy-hover:hover { background-color: var(--brand-burgundy-hover); }
+
+.hover\:text-brand-mustard:hover { color: var(--brand-mustard); }
+.hover\:text-brand-mustard-hover:hover { color: var(--brand-mustard-hover); }
+
+.hover\:text-brand-gray:hover { color: var(--brand-gray); }
+.hover\:text-brand-gray-hover:hover { color: var(--brand-gray-hover); }
+
+.hover\:text-brand-burgundy:hover { color: var(--brand-burgundy); }
+.hover\:text-brand-burgundy-hover:hover { color: var(--brand-burgundy-hover); }
+
+/* Focus Effects */
+.focus\:ring-brand-mustard:focus { --tw-ring-color: var(--brand-mustard); }
+.focus\:ring-brand-burgundy:focus { --tw-ring-color: var(--brand-burgundy); }
+
+/* Component Specific Styles */
+.brand-button-primary {
+  background-color: var(--brand-mustard);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
+}
+
+.brand-button-primary:hover {
+  background-color: var(--brand-mustard-hover);
+}
+
+.brand-button-secondary {
+  background-color: var(--brand-gray);
+  color: var(--brand-burgundy);
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
+}
+
+.brand-button-secondary:hover {
+  background-color: var(--brand-gray-hover);
+}
+
+.brand-input {
+  border: 1px solid var(--brand-gray);
+  border-radius: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  transition: all 0.2s ease-in-out;
+}
+
+.brand-input:focus {
+  outline: none;
+  border-color: var(--brand-mustard);
+  box-shadow: 0 0 0 3px rgba(231, 177, 35, 0.1);
+}
+
+.brand-card {
+  background-color: white;
+  border: 1px solid var(--brand-gray);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+.brand-nav-active {
+  background-color: var(--brand-mustard-lighter);
+  color: var(--brand-burgundy);
+}
+
+.brand-nav-inactive {
+  color: #6b7280;
+}
+
+.brand-nav-inactive:hover {
+  background-color: var(--brand-mustard-light);
+  color: var(--brand-burgundy);
+}
+
+/* Status Colors */
+.status-excellent { color: #10b981; }
+.status-good { color: var(--brand-mustard); }
+.status-warning { color: #f59e0b; }
+.status-critical { color: var(--brand-burgundy); }
+
+/* Chart Colors */
+.chart-primary { background-color: var(--brand-burgundy); }
+.chart-secondary { background-color: var(--brand-mustard); }
+.chart-tertiary { background-color: var(--brand-gray); }
+.chart-success { background-color: #10b981; }
+.chart-warning { background-color: #f59e0b; }
+.chart-danger { background-color: #ef4444; }
