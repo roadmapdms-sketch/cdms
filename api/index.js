@@ -19,6 +19,9 @@ module.exports = async (req, res) => {
     await prisma.$connect();
     console.log('✅ Database connected');
     
+    // Initialize database if needed (create sample user if no users exist)
+    await initializeDatabaseIfNeeded();
+    
     const { url, method } = req;
     
     // Handle different API routes
@@ -31,7 +34,13 @@ module.exports = async (req, res) => {
     }
     
     if (url === '/api/health') {
-      return res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
+      const userCount = await prisma.user.count();
+      return res.status(200).json({ 
+        status: 'OK', 
+        timestamp: new Date().toISOString(),
+        database: 'connected',
+        users: userCount
+      });
     }
     
     // For any other API route
@@ -49,6 +58,32 @@ module.exports = async (req, res) => {
     await prisma.$disconnect();
   }
 };
+
+async function initializeDatabaseIfNeeded() {
+  try {
+    const userCount = await prisma.user.count();
+    
+    if (userCount === 0) {
+      console.log('📝 Creating sample user for first-time setup...');
+      const hashedPassword = await bcrypt.hash('password123', 12);
+      
+      const sampleUser = await prisma.user.create({
+        data: {
+          email: 'testuser@church.com',
+          password: hashedPassword,
+          firstName: 'Test',
+          lastName: 'User',
+          role: 'USER',
+          isActive: true
+        }
+      });
+      
+      console.log('✅ Sample user created:', sampleUser.email);
+    }
+  } catch (error) {
+    console.log('ℹ️ Database initialization check completed');
+  }
+}
 
 async function handleRegister(req, res) {
   try {
