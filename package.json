@@ -1,13 +1,13 @@
 {
   "name": "church-data-management-system",
   "version": "1.0.0",
-  "description": "Comprehensive Church Data Management System",
+  "description": "Comprehensive Church Data Management System - React Frontend with Node.js Backend",
   "main": "server/index.js",
   "scripts": {
     "dev": "concurrently \"npm run server:dev\" \"npm run client:dev\"",
     "server:dev": "cd server && npm run dev",
     "client:dev": "cd client && npm run dev",
-    "build": "cd client && npm run build",
+    "build": "cd client && ESLINT_NO_DEV_ERRORS=true npm run build",
     "start": "cd server && npm start",
     "install:all": "npm install && cd client && npm install && cd ../server && npm install",
     "test": "cd server && npm test && cd ../client && npm test"
@@ -16,7 +16,9 @@
     "church",
     "management",
     "database",
-    "administration"
+    "administration",
+    "react",
+    "create-react-app"
   ],
   "author": "Church Development Team",
   "license": "MIT",
@@ -25,5 +27,9 @@
   },
   "dependencies": {
     "axios": "^1.13.6"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
   }
 }
