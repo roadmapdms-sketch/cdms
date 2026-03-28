@@ -2,8 +2,14 @@ const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-// Database connection
-const prisma = new PrismaClient();
+// Database connection - use specific database file for consistency
+const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: 'file:./dev.db'
+    }
+  }
+});
 
 module.exports = async (req, res) => {
   // Enable CORS for all origins
@@ -17,7 +23,7 @@ module.exports = async (req, res) => {
 
   try {
     await prisma.$connect();
-    console.log('✅ Database connected');
+    console.log('✅ Database connected to: file:./dev.db');
     
     // Initialize database if needed (create sample user if no users exist)
     await initializeDatabaseIfNeeded();
@@ -38,9 +44,13 @@ module.exports = async (req, res) => {
       return res.status(200).json({ 
         status: 'OK', 
         timestamp: new Date().toISOString(),
-        database: 'connected',
+        database: 'file:./dev.db',
         users: userCount
       });
+    }
+    
+    if (url === '/api/reset-db' && method === 'POST') {
+      return handleResetDatabase(req, res);
     }
     
     // For any other API route
@@ -79,6 +89,9 @@ async function initializeDatabaseIfNeeded() {
       });
       
       console.log('✅ Sample user created:', sampleUser.email);
+      console.log('🔑 Login credentials:');
+      console.log('   Email: testuser@church.com');
+      console.log('   Password: password123');
     }
   } catch (error) {
     console.log('ℹ️ Database initialization check completed');
@@ -140,6 +153,46 @@ async function handleRegister(req, res) {
     
   } catch (error) {
     console.error('Registration error:', error);
+    return res.status(500).json({ error: { message: 'Internal server error' } });
+  }
+}
+
+async function handleResetDatabase(req, res) {
+  try {
+    // Clear all users
+    await prisma.user.deleteMany({});
+    console.log('🗑️ Database cleared - all users deleted');
+    
+    // Create new sample user
+    const hashedPassword = await bcrypt.hash('password123', 12);
+    
+    const sampleUser = await prisma.user.create({
+      data: {
+        email: 'testuser@church.com',
+        password: hashedPassword,
+        firstName: 'Test',
+        lastName: 'User',
+        role: 'USER',
+        isActive: true
+      }
+    });
+    
+    console.log('✅ New sample user created:', sampleUser.email);
+    console.log('🔑 Login credentials:');
+    console.log('   Email: testuser@church.com');
+    console.log('   Password: password123');
+    
+    return res.status(200).json({
+      message: 'Database reset successfully',
+      user: {
+        email: sampleUser.email,
+        firstName: sampleUser.firstName,
+        lastName: sampleUser.lastName
+      }
+    });
+    
+  } catch (error) {
+    console.error('Database reset error:', error);
     return res.status(500).json({ error: { message: 'Internal server error' } });
   }
 }
