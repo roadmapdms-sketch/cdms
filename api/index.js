@@ -1,15 +1,12 @@
-const { PrismaClient } = require('@prisma/client');
+const { createClient } = require('@supabase/supabase-js');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-// Database connection - use direct DATABASE_URL
-const prisma = new PrismaClient({
-  datasources: {
-    db: {
-      url: process.env.DATABASE_URL
-    }
-  }
-});
+// Supabase client
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY
+);
 
 module.exports = async (req, res) => {
   // Enable CORS for all origins
@@ -22,9 +19,8 @@ module.exports = async (req, res) => {
   }
 
   try {
-    await prisma.$connect();
-    console.log('✅ Database connected to Supabase PostgreSQL');
-    console.log('🔗 Database URL:', process.env.DATABASE_URL.replace(/:([^@]+)@/, ':***@')); // Hide password in logs
+    console.log('✅ Connected to Supabase');
+    console.log('🔗 Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
     
     // Initialize database if needed (create sample user if no users exist)
     await initializeDatabaseIfNeeded();
@@ -41,13 +37,15 @@ module.exports = async (req, res) => {
     }
     
     if (url === '/api/health') {
-      const userCount = await prisma.user.count();
+      const { data: users, error } = await supabase.from('users').select('count');
+      const userCount = users?.length || 0;
+      
       return res.status(200).json({ 
         status: 'OK', 
         timestamp: new Date().toISOString(),
-        database: 'Supabase PostgreSQL',
+        database: 'Supabase',
         users: userCount,
-        host: process.env.DATABASE_URL.split('@')[1].split('/')[0] // Extract host
+        host: process.env.NEXT_PUBLIC_SUPABASE_URL
       });
     }
     
@@ -66,34 +64,42 @@ module.exports = async (req, res) => {
   } catch (error) {
     console.error('API Error:', error);
     return res.status(500).json({ error: { message: 'Internal server error' } });
-  } finally {
-    await prisma.$disconnect();
   }
 };
 
 async function initializeDatabaseIfNeeded() {
   try {
-    const userCount = await prisma.user.count();
+    const { data: users, error } = await supabase.from('users').select('count');
     
-    if (userCount === 0) {
+    if (!users || users.length === 0) {
       console.log('📝 Creating sample user for first-time setup...');
+      
+      // Create sample user
       const hashedPassword = await bcrypt.hash('password123', 12);
       
-      const sampleUser = await prisma.user.create({
-        data: {
+      const { data: sampleUser, error: createError } = await supabase
+        .from('users')
+        .insert([{
           email: 'testuser@church.com',
           password: hashedPassword,
           firstName: 'Test',
           lastName: 'User',
           role: 'USER',
-          isActive: true
-        }
-      });
+          isActive: true,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }])
+        .select()
+        .single();
       
-      console.log('✅ Sample user created:', sampleUser.email);
-      console.log('🔑 Login credentials:');
-      console.log('   Email: testuser@church.com');
-      console.log('   Password: password123');
+      if (createError) {
+        console.log('ℹ️ Sample user creation failed:', createError.message);
+      } else {
+        console.log('✅ Sample user created:', sampleUser.email);
+        console.log('🔑 Login credentials:');
+        console.log('   Email: testuser@church.com');
+        console.log('   Password: password123');
+      }
     }
   } catch (error) {
     console.log('ℹ️ Database initialization check completed');
@@ -109,7 +115,12 @@ async function handleRegister(req, res) {
     }
     
     // Check if user exists
-    const existingUser = await prisma.user.findUnique({ where: { email } });
+    const { data: existingUser } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', email)
+      .single();
+    
     if (existingUser) {
       return res.status(400).json({ error: { message: 'User already exists' } });
     }
@@ -118,25 +129,25 @@ async function handleRegister(req, res) {
     const hashedPassword = await bcrypt.hash(password, 12);
     
     // Create user
-    const user = await prisma.user.create({
-      data: {
+    const { data: user, error } = await supabase
+      .from('users')
+      .insert([{
         email,
         password: hashedPassword,
         firstName,
         lastName,
         role: 'USER',
-        isActive: true
-      },
-      select: {
-        id: true,
-        email: true,
-        firstName: true,
-        lastName: true,
-        role: true,
         isActive: true,
-        createdAt: true
-      }
-    });
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }])
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Registration error:', error);
+      return res.status(500).json({ error: { message: 'Failed to create user' } });
+    }
     
     // Generate JWT
     const token = jwt.sign(
@@ -147,54 +158,17 @@ async function handleRegister(req, res) {
     
     console.log('✅ User created:', email);
     
+    // Remove password from response
+    const { password: _, ...userWithoutPassword } = user;
+    
     return res.status(201).json({
       message: 'User created successfully',
-      user,
+      user: userWithoutPassword,
       token
     });
     
   } catch (error) {
     console.error('Registration error:', error);
-    return res.status(500).json({ error: { message: 'Internal server error' } });
-  }
-}
-
-async function handleResetDatabase(req, res) {
-  try {
-    // Clear all users
-    await prisma.user.deleteMany({});
-    console.log('🗑️ Database cleared - all users deleted');
-    
-    // Create new sample user
-    const hashedPassword = await bcrypt.hash('password123', 12);
-    
-    const sampleUser = await prisma.user.create({
-      data: {
-        email: 'testuser@church.com',
-        password: hashedPassword,
-        firstName: 'Test',
-        lastName: 'User',
-        role: 'USER',
-        isActive: true
-      }
-    });
-    
-    console.log('✅ New sample user created:', sampleUser.email);
-    console.log('🔑 Login credentials:');
-    console.log('   Email: testuser@church.com');
-    console.log('   Password: password123');
-    
-    return res.status(200).json({
-      message: 'Database reset successfully',
-      user: {
-        email: sampleUser.email,
-        firstName: sampleUser.firstName,
-        lastName: sampleUser.lastName
-      }
-    });
-    
-  } catch (error) {
-    console.error('Database reset error:', error);
     return res.status(500).json({ error: { message: 'Internal server error' } });
   }
 }
@@ -207,9 +181,13 @@ async function handleLogin(req, res) {
       return res.status(400).json({ error: { message: 'Email and password are required' } });
     }
     
-    const user = await prisma.user.findUnique({ where: { email } });
+    const { data: user, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', email)
+      .single();
     
-    if (!user || !user.isActive) {
+    if (error || !user || !user.isActive) {
       return res.status(401).json({ error: { message: 'Invalid credentials' } });
     }
     
@@ -236,6 +214,55 @@ async function handleLogin(req, res) {
     
   } catch (error) {
     console.error('Login error:', error);
+    return res.status(500).json({ error: { message: 'Internal server error' } });
+  }
+}
+
+async function handleResetDatabase(req, res) {
+  try {
+    // Clear all users
+    await supabase.from('users').delete().neq('id', '');
+    console.log('🗑️ Database cleared - all users deleted');
+    
+    // Create new sample user
+    const hashedPassword = await bcrypt.hash('password123', 12);
+    
+    const { data: sampleUser, error } = await supabase
+      .from('users')
+      .insert([{
+        email: 'testuser@church.com',
+        password: hashedPassword,
+        firstName: 'Test',
+        lastName: 'User',
+        role: 'USER',
+        isActive: true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }])
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Sample user creation error:', error);
+      return res.status(500).json({ error: { message: 'Failed to create sample user' } });
+    }
+    
+    console.log('✅ New sample user created:', sampleUser.email);
+    console.log('🔑 Login credentials:');
+    console.log('   Email: testuser@church.com');
+    console.log('   Password: password123');
+    
+    return res.status(200).json({
+      message: 'Database reset successfully',
+      user: {
+        email: sampleUser.email,
+        firstName: sampleUser.firstName,
+        lastName: sampleUser.lastName
+      }
+    });
+    
+  } catch (error) {
+    console.error('Database reset error:', error);
     return res.status(500).json({ error: { message: 'Internal server error' } });
   }
 }
