@@ -2,11 +2,17 @@ const { createClient } = require('@supabase/supabase-js');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-// Supabase client
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY
-);
+// Supabase client - handle module loading properly
+let supabase;
+try {
+  supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY
+  );
+} catch (error) {
+  console.error('❌ Supabase client creation failed:', error);
+  supabase = null;
+}
 
 module.exports = async (req, res) => {
   // Enable CORS for all origins
@@ -19,8 +25,15 @@ module.exports = async (req, res) => {
   }
 
   try {
+    if (!supabase) {
+      return res.status(500).json({ 
+        error: { message: 'Supabase client not available - check environment variables' } 
+      });
+    }
+    
     console.log('✅ Connected to Supabase');
     console.log('🔗 Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
+    console.log('🔑 Supabase Key:', process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY ? 'SET' : 'NOT SET');
     
     // Initialize database if needed (create sample user if no users exist)
     await initializeDatabaseIfNeeded();
@@ -37,6 +50,17 @@ module.exports = async (req, res) => {
     }
     
     if (url === '/api/health') {
+      if (!supabase) {
+        return res.status(500).json({ 
+          status: 'ERROR', 
+          timestamp: new Date().toISOString(),
+          database: 'Supabase - CLIENT FAILED',
+          users: 0,
+          host: process.env.NEXT_PUBLIC_SUPABASE_URL,
+          error: 'Supabase client not initialized'
+        });
+      }
+      
       const { data: users, error } = await supabase.from('users').select('count');
       const userCount = users?.length || 0;
       
@@ -45,7 +69,8 @@ module.exports = async (req, res) => {
         timestamp: new Date().toISOString(),
         database: 'Supabase',
         users: userCount,
-        host: process.env.NEXT_PUBLIC_SUPABASE_URL
+        host: process.env.NEXT_PUBLIC_SUPABASE_URL,
+        key_set: !!process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY
       });
     }
     
