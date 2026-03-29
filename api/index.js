@@ -2,13 +2,11 @@ const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-// Database connection - build DATABASE_URL from individual parameters like Engagenet
-const DATABASE_URL = `postgresql://${process.env.DATABASE_USER}:${process.env.DATABASE_PASSWORD}@${process.env.DATABASE_HOST}:${process.env.DATABASE_PORT}/${process.env.DATABASE_NAME}?sslmode=${process.env.DATABASE_SSL}`;
-
+// Database connection - use direct DATABASE_URL
 const prisma = new PrismaClient({
   datasources: {
     db: {
-      url: DATABASE_URL
+      url: process.env.DATABASE_URL
     }
   }
 });
@@ -26,7 +24,7 @@ module.exports = async (req, res) => {
   try {
     await prisma.$connect();
     console.log('✅ Database connected to Supabase PostgreSQL');
-    console.log('🔗 Database URL:', DATABASE_URL.replace(/:([^@]+)@/, ':***@')); // Hide password in logs
+    console.log('🔗 Database URL:', process.env.DATABASE_URL.replace(/:([^@]+)@/, ':***@')); // Hide password in logs
     
     // Initialize database if needed (create sample user if no users exist)
     await initializeDatabaseIfNeeded();
@@ -49,7 +47,7 @@ module.exports = async (req, res) => {
         timestamp: new Date().toISOString(),
         database: 'Supabase PostgreSQL',
         users: userCount,
-        host: process.env.DATABASE_HOST
+        host: process.env.DATABASE_URL.split('@')[1].split('/')[0] // Extract host
       });
     }
     
