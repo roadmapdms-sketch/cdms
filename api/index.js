@@ -5,10 +5,28 @@ const jwt = require('jsonwebtoken');
 // Supabase client - handle module loading properly
 let supabase;
 try {
-  supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY
-  );
+  // Try multiple environment variable names for Vercel compatibility
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 
+                       process.env.SUPABASE_URL || 
+                       process.env.NEXT_PUBLIC_SUPABASE_URL;
+                       
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY || 
+                        process.env.SUPABASE_PUBLISHABLE_DEFAULT_KEY || 
+                        process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
+  
+  console.log('🔍 Environment variables check:');
+  console.log('NEXT_PUBLIC_SUPABASE_URL:', process.env.NEXT_PUBLIC_SUPABASE_URL ? 'SET' : 'NOT SET');
+  console.log('SUPABASE_URL:', process.env.SUPABASE_URL ? 'SET' : 'NOT SET');
+  console.log('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY:', process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY ? 'SET' : 'NOT SET');
+  console.log('SUPABASE_PUBLISHABLE_DEFAULT_KEY:', process.env.SUPABASE_PUBLISHABLE_DEFAULT_KEY ? 'SET' : 'NOT SET');
+  
+  if (!supabaseUrl || !supabaseKey) {
+    console.error('❌ Supabase environment variables not found');
+    supabase = null;
+  } else {
+    supabase = createClient(supabaseUrl, supabaseKey);
+    console.log('✅ Supabase client created with URL:', supabaseUrl);
+  }
 } catch (error) {
   console.error('❌ Supabase client creation failed:', error);
   supabase = null;
