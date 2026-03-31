@@ -37,8 +37,29 @@ const Login: React.FC = () => {
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
       
-      // Redirect to dashboard
-      navigate('/');
+      // Role-based routing
+      const userRole = response.data.user.role;
+      switch(userRole) {
+        case 'ADMIN':
+          navigate('/admin/dashboard');
+          break;
+        case 'ACCOUNTANT':
+          navigate('/accountant/dashboard');
+          break;
+        case 'PASTOR':
+          navigate('/pastor/dashboard');
+          break;
+        case 'VOLUNTEER_COORDINATOR':
+          navigate('/volunteer/dashboard');
+          break;
+        case 'MEMBER':
+        case 'VOLUNTEER':
+        case 'STAFF':
+        case 'USER':
+        default:
+          navigate('/dashboard');
+          break;
+      }
     } catch (err: any) {
       setError(err.response?.data?.error?.message || 'Login failed');
     } finally {
