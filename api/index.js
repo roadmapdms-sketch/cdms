@@ -56,18 +56,23 @@ module.exports = async (req, res) => {
     // Initialize database if needed (create sample user if no users exist)
     await initializeDatabaseIfNeeded();
     
-    const { url, method } = req;
+    // Parse URL and method for serverless functions
+    const parsedUrl = new URL(req.url, `http://${req.headers.host}`);
+    const pathname = parsedUrl.pathname;
+    const method = req.method;
+    
+    console.log('🔍 Request:', method, pathname);
     
     // Handle different API routes
-    if (url === '/api/auth/register' && method === 'POST') {
+    if (pathname === '/api/auth/register' && method === 'POST') {
       return handleRegister(req, res);
     }
     
-    if (url === '/api/auth/login' && method === 'POST') {
+    if (pathname === '/api/auth/login' && method === 'POST') {
       return handleLogin(req, res);
     }
     
-    if (url === '/api/health') {
+    if (pathname === '/api/health') {
       if (!supabase) {
         return res.status(500).json({ 
           status: 'ERROR', 
@@ -92,11 +97,11 @@ module.exports = async (req, res) => {
       });
     }
     
-    if (url === '/api/debug') {
+    if (pathname === '/api/debug') {
       return require('./debug')(req, res);
     }
     
-    if (url === '/api/reset-db' && method === 'POST') {
+    if (pathname === '/api/reset-db' && method === 'POST') {
       return handleResetDatabase(req, res);
     }
     
