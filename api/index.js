@@ -92,6 +92,10 @@ module.exports = async (req, res) => {
       });
     }
     
+    if (url === '/api/debug') {
+      return require('./debug')(req, res);
+    }
+    
     if (url === '/api/reset-db' && method === 'POST') {
       return handleResetDatabase(req, res);
     }
