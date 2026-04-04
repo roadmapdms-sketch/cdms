@@ -110,7 +110,7 @@ module.exports = async (req, res) => {
     }
     
     // For any other API route
-    if (url.startsWith('/api/')) {
+    if (pathname.startsWith('/api/')) {
       return res.status(404).json({ error: { message: 'API endpoint not found' } });
     }
     
