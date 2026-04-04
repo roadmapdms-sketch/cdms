@@ -1,28 +1,76 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useMemo } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import axios, { isAxiosError } from 'axios';
 import { AUTH_API_BASE_URL } from '../config/api';
+import { getSafeRedirectParam, canAccessPortalPath } from '../utils/allowedRedirects';
 
 interface LoginFormData {
   email: string;
   password: string;
 }
 
+const REDIRECT_HINTS: Record<string, string> = {
+  '/admin': 'Administrator portal',
+  '/accountant': 'Finance & accounting',
+  '/pastor': 'Pastoral leadership',
+  '/volunteer': 'Volunteer coordination',
+  '/user': 'Member portal',
+  '/dashboard': 'Staff operations console',
+};
+
 const Login: React.FC = () => {
   const [formData, setFormData] = useState<LoginFormData>({
     email: '',
-    password: ''
+    password: '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  const redirectTarget = useMemo(
+    () => getSafeRedirectParam(searchParams.get('redirect')),
+    [searchParams]
+  );
+
+  const portalHint = redirectTarget ? REDIRECT_HINTS[redirectTarget] : null;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
+  };
+
+  const goAfterLogin = (role: string) => {
+    if (redirectTarget && canAccessPortalPath(redirectTarget, role)) {
+      navigate(redirectTarget, { replace: true });
+      return;
+    }
+    switch (role) {
+      case 'ADMIN':
+        navigate('/admin', { replace: true });
+        break;
+      case 'ACCOUNTANT':
+        navigate('/accountant', { replace: true });
+        break;
+      case 'PASTOR':
+        navigate('/pastor', { replace: true });
+        break;
+      case 'VOLUNTEER_COORDINATOR':
+        navigate('/volunteer', { replace: true });
+        break;
+      case 'MEMBER':
+        navigate('/user', { replace: true });
+        break;
+      case 'VOLUNTEER':
+      case 'STAFF':
+      case 'USER':
+      default:
+        navigate('/dashboard', { replace: true });
+        break;
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -32,36 +80,12 @@ const Login: React.FC = () => {
 
     try {
       const response = await axios.post(`${AUTH_API_BASE_URL}/auth/login`, formData);
-      
-      // Store token and user data
+
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
-      
-      // Role-based routing
-      const userRole = response.data.user.role;
-      switch(userRole) {
-        case 'ADMIN':
-          navigate('/admin/dashboard');
-          break;
-        case 'ACCOUNTANT':
-          navigate('/accountant/dashboard');
-          break;
-        case 'PASTOR':
-          navigate('/pastor/dashboard');
-          break;
-        case 'VOLUNTEER_COORDINATOR':
-          navigate('/volunteer/dashboard');
-          break;
-        case 'MEMBER':
-          navigate('/member/dashboard');
-          break;
-        case 'VOLUNTEER':
-        case 'STAFF':
-        case 'USER':
-        default:
-          navigate('/dashboard');
-          break;
-      }
+
+      const userRole = response.data.user.role as string;
+      goAfterLogin(userRole);
     } catch (err: unknown) {
       if (isAxiosError(err) && err.response?.data?.error?.message) {
         setError(err.response.data.error.message);
@@ -78,47 +102,65 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#eeedee] py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
+    <div className="relative min-h-screen overflow-hidden bg-[#050505] py-12 px-4 sm:px-6 lg:px-8">
+      <div
+        className="pointer-events-none absolute inset-0 bg-[url('/branding/rmi-hero-logo.png')] bg-[length:min(100vw,640px)] bg-[position:50%_-5%] bg-no-repeat opacity-[0.12]"
+        aria-hidden
+      />
+      <div className="absolute inset-0 bg-gradient-to-b from-black via-[#070707]/95 to-[#070707]" />
+
+      <div className="relative z-10 mx-auto w-full max-w-md space-y-8">
         <div>
-          <div className="mx-auto h-12 w-12 flex items-center justify-center rounded-full bg-[#e7b123]/20">
-            <svg className="h-8 w-8 text-[#e7b123]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-            </svg>
-          </div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-[#7a0f1a]">
-            Sign in to CDMS
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Church Data Management System
-          </p>
+          <Link
+            to="/"
+            className="mx-auto flex justify-center text-xs uppercase tracking-[0.2em] text-[#c9a227]/80 hover:text-[#e8c547]"
+          >
+            ← Roadmap Ministry · CDMS
+          </Link>
+          <h2 className="mt-6 text-center text-3xl font-semibold text-[#f5e6b8]">Sign in</h2>
+          <p className="mt-2 text-center text-sm text-zinc-500">Church Data Management System</p>
+          {portalHint ? (
+            <p className="mt-3 rounded-lg border border-[#c9a227]/30 bg-[#c9a227]/10 px-3 py-2 text-center text-sm text-[#e8c547]">
+              {portalHint}
+              <span className="mt-1 block text-xs font-normal text-zinc-400">
+                If your role does not match this portal, you will be routed to the correct dashboard after sign-in.
+              </span>
+            </p>
+          ) : null}
         </div>
-        
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="rounded-md shadow-sm -space-y-px">
+
+        <form
+          className="mt-8 space-y-6 rounded-2xl border border-zinc-800 bg-zinc-950/80 p-6 shadow-2xl shadow-black/50 backdrop-blur-md"
+          onSubmit={handleSubmit}
+        >
+          <div className="-space-y-px rounded-md shadow-sm">
             <div>
-              <label htmlFor="email" className="sr-only">Email address</label>
+              <label htmlFor="email" className="sr-only">
+                Email address
+              </label>
               <input
                 id="email"
                 name="email"
                 type="email"
                 autoComplete="email"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-[#eeedee] placeholder-gray-500 text-[#7a0f1a] rounded-t-md focus:outline-none focus:ring-[#e7b123] focus:border-[#e7b123] focus:z-10 sm:text-sm"
+                className="relative block w-full appearance-none rounded-t-md border border-zinc-700 bg-black/40 px-3 py-2 text-[#f5e6b8] placeholder-zinc-600 focus:z-10 focus:border-[#c9a227] focus:outline-none focus:ring-[#c9a227] sm:text-sm"
                 placeholder="Email address"
                 value={formData.email}
                 onChange={handleChange}
               />
             </div>
             <div>
-              <label htmlFor="password" className="sr-only">Password</label>
+              <label htmlFor="password" className="sr-only">
+                Password
+              </label>
               <input
                 id="password"
                 name="password"
                 type="password"
                 autoComplete="current-password"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-[#eeedee] placeholder-gray-500 text-[#7a0f1a] rounded-b-md focus:outline-none focus:ring-[#e7b123] focus:border-[#e7b123] focus:z-10 sm:text-sm"
+                className="relative block w-full appearance-none rounded-b-md border border-t-0 border-zinc-700 bg-black/40 px-3 py-2 text-[#f5e6b8] placeholder-zinc-600 focus:z-10 focus:border-[#c9a227] focus:outline-none focus:ring-[#c9a227] sm:text-sm"
                 placeholder="Password"
                 value={formData.password}
                 onChange={handleChange}
@@ -126,45 +168,30 @@ const Login: React.FC = () => {
             </div>
           </div>
 
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md text-sm">
+          {error ? (
+            <div className="rounded-md border border-red-500/40 bg-red-950/40 px-4 py-3 text-sm text-red-200">
               {error}
             </div>
-          )}
+          ) : null}
 
-          <div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-[#e7b123] hover:bg-[#d4a01f] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#e7b123] disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? 'Signing in...' : 'Sign in'}
-            </button>
+          <button
+            type="submit"
+            disabled={loading}
+            className="relative flex w-full justify-center rounded-lg bg-gradient-to-r from-[#c9a227] to-[#8a6d1a] py-2.5 text-sm font-semibold text-black shadow-lg shadow-amber-950/40 hover:from-[#e8c547] hover:to-[#c9a227] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {loading ? 'Signing in…' : 'Sign in'}
+          </button>
+
+          <div className="relative text-center">
+            <span className="relative z-10 bg-zinc-950 px-2 text-xs text-zinc-600">or</span>
+            <div className="absolute inset-0 top-1/2 z-0 border-t border-zinc-800" />
           </div>
 
-          <div className="mt-6">
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-[#eeedee]" />
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white text-gray-500">Or</span>
-                </div>
-              </div>
-
-              <div className="mt-6 text-center">
-                <a
-                  href="/register"
-                  className="font-medium text-[#7a0f1a] hover:text-[#e7b123]"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    navigate('/register');
-                  }}
-                >
-                  Don't have an account? Sign up
-                </a>
-              </div>
-            </div>
+          <p className="text-center text-sm text-zinc-500">
+            <Link to="/register" className="font-medium text-[#c9a227] hover:text-[#e8c547]">
+              Create an account
+            </Link>
+          </p>
         </form>
       </div>
     </div>

@@ -50,15 +50,15 @@ export function sidebarItemsForRole(role: string | undefined): SidebarNavItem[] 
 export function getDefaultHomePath(role: string | undefined): string {
   switch (role) {
     case 'ADMIN':
-      return '/admin/dashboard';
+      return '/admin';
     case 'ACCOUNTANT':
-      return '/accountant/dashboard';
+      return '/accountant';
     case 'PASTOR':
-      return '/pastor/dashboard';
+      return '/pastor';
     case 'VOLUNTEER_COORDINATOR':
-      return '/volunteer/dashboard';
+      return '/volunteer';
     case 'MEMBER':
-      return '/member/dashboard';
+      return '/user';
     default:
       return '/dashboard';
   }

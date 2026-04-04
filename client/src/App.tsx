@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
+import PublicLandingOrRedirect from './components/PublicLandingOrRedirect';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
@@ -41,79 +42,87 @@ function CatchAllRedirect() {
 function App() {
   return (
     <Router>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen">
         <Routes>
+          <Route path="/" element={<PublicLandingOrRedirect />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
           <Route
-            path="/admin/dashboard"
+            path="/admin"
             element={
               <ProtectedRoute allowedRoles={['ADMIN']}>
                 <AdminDashboard />
               </ProtectedRoute>
             }
           />
+          <Route path="/admin/dashboard" element={<Navigate to="/admin" replace />} />
+
           <Route
-            path="/accountant/dashboard"
+            path="/accountant"
             element={
               <ProtectedRoute allowedRoles={['ACCOUNTANT', 'ADMIN']}>
                 <AccountantDashboard />
               </ProtectedRoute>
             }
           />
+          <Route path="/accountant/dashboard" element={<Navigate to="/accountant" replace />} />
+
           <Route
-            path="/pastor/dashboard"
+            path="/pastor"
             element={
               <ProtectedRoute allowedRoles={['PASTOR', 'ADMIN', 'STAFF']}>
                 <PastorDashboard />
               </ProtectedRoute>
             }
           />
+          <Route path="/pastor/dashboard" element={<Navigate to="/pastor" replace />} />
+
           <Route
-            path="/volunteer/dashboard"
+            path="/volunteer"
             element={
               <ProtectedRoute allowedRoles={['VOLUNTEER_COORDINATOR', 'ADMIN']}>
                 <VolunteerDashboard />
               </ProtectedRoute>
             }
           />
+          <Route path="/volunteer/dashboard" element={<Navigate to="/volunteer" replace />} />
+
           <Route
-            path="/member/dashboard"
+            path="/user"
             element={
               <ProtectedRoute allowedRoles={['MEMBER']}>
                 <MemberDashboard />
               </ProtectedRoute>
             }
           />
+          <Route path="/member/dashboard" element={<Navigate to="/user" replace />} />
 
           <Route
-            path="/"
             element={
               <ProtectedRoute allowedRoles={LAYOUT_ALLOWED_ROLES}>
                 <Layout />
               </ProtectedRoute>
             }
           >
-            <Route index element={<Navigate to="/dashboard" replace />} />
-            <Route path="dashboard" element={<Dashboard />} />
-            <Route path="members" element={<Members />} />
-            <Route path="attendance" element={<Attendance />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/members" element={<Members />} />
+            <Route path="/attendance" element={<Attendance />} />
             <Route
-              path="financial"
+              path="/financial"
               element={
                 <ProtectedRoute allowedRoles={[...FINANCE_ALLOWED_ROLES]}>
                   <Financial />
                 </ProtectedRoute>
               }
             />
-            <Route path="communications" element={<Communications />} />
-            <Route path="events" element={<Events />} />
-            <Route path="volunteers" element={<Volunteers />} />
-            <Route path="pastoral-care" element={<PastoralCare />} />
-            <Route path="inventory" element={<Inventory />} />
+            <Route path="/communications" element={<Communications />} />
+            <Route path="/events" element={<Events />} />
+            <Route path="/volunteers" element={<Volunteers />} />
+            <Route path="/pastoral-care" element={<PastoralCare />} />
+            <Route path="/inventory" element={<Inventory />} />
             <Route
-              path="expenses"
+              path="/expenses"
               element={
                 <ProtectedRoute allowedRoles={[...FINANCE_ALLOWED_ROLES]}>
                   <Expenses />
@@ -121,7 +130,7 @@ function App() {
               }
             />
             <Route
-              path="vendors"
+              path="/vendors"
               element={
                 <ProtectedRoute allowedRoles={[...FINANCE_ALLOWED_ROLES]}>
                   <Vendors />
@@ -129,14 +138,14 @@ function App() {
               }
             />
             <Route
-              path="budget"
+              path="/budget"
               element={
                 <ProtectedRoute allowedRoles={[...FINANCE_ALLOWED_ROLES]}>
                   <Budget />
                 </ProtectedRoute>
               }
             />
-            <Route path="reports" element={<Reports />} />
+            <Route path="/reports" element={<Reports />} />
           </Route>
 
           <Route path="*" element={<CatchAllRedirect />} />
