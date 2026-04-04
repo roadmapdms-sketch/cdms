@@ -1,12 +1,13 @@
 import express from 'express';
 import { PrismaClient } from '@prisma/client';
-import { authMiddleware } from '../middleware/auth';
+import { authMiddleware, requireRole } from '../middleware/auth';
+import { FINANCE_CORE_ROLES } from '../constants/accessRoles';
 
 const router = express.Router();
 const prisma = new PrismaClient();
 
-// All budget routes will be protected
 router.use(authMiddleware);
+router.use(requireRole(FINANCE_CORE_ROLES));
 
 // Get budgets with pagination and filters
 router.get('/', async (req, res) => {

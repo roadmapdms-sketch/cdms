@@ -1,6 +1,7 @@
 import express from 'express';
 import { PrismaClient } from '@prisma/client';
-import { authMiddleware } from '../middleware/auth';
+import { authMiddleware, requireRole } from '../middleware/auth';
+import { STAFF_MODULE_ROLES } from '../constants/accessRoles';
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -20,8 +21,8 @@ router.get('/health', async (req, res) => {
   }
 });
 
-// All report routes will be protected
 router.use(authMiddleware);
+router.use(requireRole(STAFF_MODULE_ROLES));
 
 // Get comprehensive dashboard statistics
 router.get('/dashboard', async (req, res) => {

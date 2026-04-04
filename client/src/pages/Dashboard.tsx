@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { API_BASE_URL } from '../config/api';
+import { canAccessFinanceModules } from '../utils/roles';
 
 interface DashboardStats {
   overview: {
@@ -40,6 +41,16 @@ const Dashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedPeriod, setSelectedPeriod] = useState('current');
+  const [showFinance, setShowFinance] = useState(false);
+
+  useEffect(() => {
+    try {
+      const u = JSON.parse(localStorage.getItem('user') || '{}');
+      setShowFinance(canAccessFinanceModules(u.role));
+    } catch {
+      setShowFinance(false);
+    }
+  }, []);
 
   const fetchDashboardStats = useCallback(async () => {
     try {
@@ -109,7 +120,11 @@ const Dashboard: React.FC = () => {
       {dashboardStats && (
         <>
           {/* Overview Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div
+            className={`grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 ${
+              showFinance ? 'lg:grid-cols-4' : 'lg:grid-cols-3'
+            }`}
+          >
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
@@ -161,49 +176,57 @@ const Dashboard: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <div className="w-8 h-8 bg-[#e7b123]/20 rounded-full flex items-center justify-center">
-                    <span className="text-[#e7b123] text-lg">💰</span>
+            {showFinance && (
+              <div className="bg-white rounded-lg shadow p-6">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <div className="w-8 h-8 bg-[#e7b123]/20 rounded-full flex items-center justify-center">
+                      <span className="text-[#e7b123] text-lg">💰</span>
+                    </div>
+                  </div>
+                  <div className="ml-4">
+                    <p className="text-sm font-medium text-gray-600">Total Income</p>
+                    <p className="text-2xl font-bold text-[#7a0f1a]">${dashboardStats.financial.totalGiving.toFixed(2)}</p>
+                    <p className="text-xs text-gray-500">
+                      ${dashboardStats.financial.totalExpenses.toFixed(2)} expenses
+                    </p>
                   </div>
                 </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Total Income</p>
-                  <p className="text-2xl font-bold text-[#7a0f1a]">${dashboardStats.financial.totalGiving.toFixed(2)}</p>
-                  <p className="text-xs text-gray-500">
-                    ${dashboardStats.financial.totalExpenses.toFixed(2)} expenses
-                  </p>
-                </div>
               </div>
-            </div>
+            )}
           </div>
 
-          {/* Financial Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-lg font-semibold text-[#7a0f1a] mb-4">Financial Overview</h3>
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Total Budget</span>
-                  <span className="text-sm font-medium text-[#7a0f1a]">${dashboardStats.financial.totalBudget.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Total Spent</span>
-                  <span className="text-sm font-medium text-[#e7b123]">${dashboardStats.financial.totalSpent.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Budget Utilization</span>
-                  <span className={`text-sm font-medium ${getRateColor(dashboardStats.financial.budgetUtilizationRate)}`}>
-                    {dashboardStats.financial.budgetUtilizationRate}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Pending Expenses</span>
-                  <span className="text-sm font-medium text-yellow-600">{dashboardStats.financial.pendingExpenses}</span>
+          {/* Financial Stats + operations */}
+          <div
+            className={`grid grid-cols-1 gap-6 mb-8 ${
+              showFinance ? 'md:grid-cols-3' : 'md:grid-cols-2'
+            }`}
+          >
+            {showFinance && (
+              <div className="bg-white rounded-lg shadow p-6">
+                <h3 className="text-lg font-semibold text-[#7a0f1a] mb-4">Financial Overview</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">Total Budget</span>
+                    <span className="text-sm font-medium text-[#7a0f1a]">${dashboardStats.financial.totalBudget.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">Total Spent</span>
+                    <span className="text-sm font-medium text-[#e7b123]">${dashboardStats.financial.totalSpent.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">Budget Utilization</span>
+                    <span className={`text-sm font-medium ${getRateColor(dashboardStats.financial.budgetUtilizationRate)}`}>
+                      {dashboardStats.financial.budgetUtilizationRate}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">Pending Expenses</span>
+                    <span className="text-sm font-medium text-yellow-600">{dashboardStats.financial.pendingExpenses}</span>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
             <div className="bg-white rounded-lg shadow p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Operations</h3>
@@ -222,10 +245,12 @@ const Dashboard: React.FC = () => {
                     {dashboardStats.operations.inventoryAvailabilityRate}
                   </span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Active Vendors</span>
-                  <span className="text-sm font-medium text-blue-600">{dashboardStats.operations.activeVendors}/{dashboardStats.operations.totalVendors}</span>
-                </div>
+                {showFinance && (
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">Active Vendors</span>
+                    <span className="text-sm font-medium text-blue-600">{dashboardStats.operations.activeVendors}/{dashboardStats.operations.totalVendors}</span>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -273,12 +298,15 @@ const Dashboard: React.FC = () => {
                 >
                   Record Attendance
                 </button>
-                <button 
-                  onClick={() => navigate('/financial')}
-                  className="p-4 border border-[#eeedee] rounded-lg hover:bg-[#e7b123]/10 text-sm font-medium text-[#7a0f1a] transition-colors"
-                >
-                  Add Financial Record
-                </button>
+                {showFinance && (
+                  <button
+                    type="button"
+                    onClick={() => navigate('/financial')}
+                    className="p-4 border border-[#eeedee] rounded-lg hover:bg-[#e7b123]/10 text-sm font-medium text-[#7a0f1a] transition-colors"
+                  >
+                    Add Financial Record
+                  </button>
+                )}
                 <button 
                   onClick={() => navigate('/events')}
                   className="p-4 border border-[#eeedee] rounded-lg hover:bg-[#e7b123]/10 text-sm font-medium text-[#7a0f1a] transition-colors"
@@ -291,12 +319,15 @@ const Dashboard: React.FC = () => {
                 >
                   Add Volunteer
                 </button>
-                <button 
-                  onClick={() => navigate('/expenses')}
-                  className="p-4 border border-[#eeedee] rounded-lg hover:bg-[#e7b123]/10 text-sm font-medium text-[#7a0f1a] transition-colors"
-                >
-                  Record Expense
-                </button>
+                {showFinance && (
+                  <button
+                    type="button"
+                    onClick={() => navigate('/expenses')}
+                    className="p-4 border border-[#eeedee] rounded-lg hover:bg-[#e7b123]/10 text-sm font-medium text-[#7a0f1a] transition-colors"
+                  >
+                    Record Expense
+                  </button>
+                )}
                 <button 
                   onClick={() => navigate('/inventory')}
                   className="p-4 border border-[#eeedee] rounded-lg hover:bg-[#e7b123]/10 text-sm font-medium text-[#7a0f1a] transition-colors"

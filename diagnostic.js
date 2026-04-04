@@ -1,3 +1,5 @@
+// Optional Supabase connectivity check (NOT used by the canonical Express + Prisma server).
+// See docs/ARCHITECTURE.md and api/README.md.
 // Comprehensive Database Connection Diagnostic Tool
 const { createClient } = require('@supabase/supabase-js');
 

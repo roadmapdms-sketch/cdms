@@ -6,10 +6,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const client_1 = require("@prisma/client");
 const auth_1 = require("../middleware/auth");
+const accessRoles_1 = require("../constants/accessRoles");
 const router = express_1.default.Router();
 const prisma = new client_1.PrismaClient();
-// All vendor routes will be protected
 router.use(auth_1.authMiddleware);
+router.use((0, auth_1.requireRole)(accessRoles_1.FINANCE_CORE_ROLES));
 // Get vendors with pagination and filters
 router.get('/', async (req, res) => {
     try {

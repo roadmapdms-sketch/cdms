@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { API_BASE_URL } from '../../config/api';
+import { logout } from '../../utils/authSession';
 
 interface AdminStats {
   totalMembers: number;
@@ -61,7 +62,8 @@ const AdminDashboard: React.FC = () => {
               <span className="text-sm text-gray-500">👤 Admin</span>
             </div>
             <button
-              onClick={() => navigate('/')}
+              type="button"
+              onClick={() => logout(navigate)}
               className="text-gray-500 hover:text-gray-700"
             >
               Logout

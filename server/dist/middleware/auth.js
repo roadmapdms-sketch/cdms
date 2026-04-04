@@ -32,9 +32,10 @@ const authMiddleware = async (req, res, next) => {
 exports.authMiddleware = authMiddleware;
 const requireRole = (roles) => {
     return (req, res, next) => {
-        if (!req.role || !roles.includes(req.role)) {
+        const r = req;
+        if (!r.role || !roles.includes(r.role)) {
             return res.status(403).json({
-                error: { message: 'Access denied. Insufficient permissions.' }
+                error: { message: 'Access denied. Insufficient permissions.' },
             });
         }
         next();

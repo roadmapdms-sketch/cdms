@@ -1,3 +1,5 @@
+// Alternate / experimental SQLite schema — NOT wired into npm scripts or migrations.
+// Canonical: schema.prisma (PostgreSQL). See docs/ARCHITECTURE.md.
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 

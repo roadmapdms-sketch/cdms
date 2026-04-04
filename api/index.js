@@ -1,3 +1,7 @@
+/**
+ * Optional Vercel serverless entry (Supabase). NOT the canonical CDMS API.
+ * Default backend: server/ (Express + Prisma). See docs/ARCHITECTURE.md and api/README.md.
+ */
 const { createClient } = require('@supabase/supabase-js');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');

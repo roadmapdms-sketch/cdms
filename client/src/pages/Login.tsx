@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { API_BASE_URL } from '../config/api';
 
@@ -53,6 +53,8 @@ const Login: React.FC = () => {
           navigate('/volunteer/dashboard');
           break;
         case 'MEMBER':
+          navigate('/member/dashboard');
+          break;
         case 'VOLUNTEER':
         case 'STAFF':
         case 'USER':

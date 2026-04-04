@@ -1,12 +1,13 @@
 import express from 'express';
 import { PrismaClient } from '@prisma/client';
-import { authMiddleware } from '../middleware/auth';
+import { authMiddleware, requireRole } from '../middleware/auth';
+import { STAFF_MODULE_ROLES } from '../constants/accessRoles';
 
 const router = express.Router();
 const prisma = new PrismaClient();
 
-// All member routes will be protected
 router.use(authMiddleware);
+router.use(requireRole(STAFF_MODULE_ROLES));
 
 // Get all members with pagination and search
 router.get('/', async (req, res) => {

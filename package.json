@@ -11,7 +11,9 @@
     "build:client": "cd client && ESLINT_NO_DEV_ERRORS=true npm run build",
     "start": "cd server && npm start",
     "install:all": "npm install && cd client && npm install && cd ../server && npm install",
-    "test": "cd server && npm test && cd ../client && npm test"
+    "test": "cd server && npm test && cd ../client && CI=true npm test -- --watchAll=false",
+    "docker:build": "docker build -t cdms:local .",
+    "docker:up": "docker compose up --build"
   },
   "keywords": [
     "church",

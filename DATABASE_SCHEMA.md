@@ -1,5 +1,7 @@
 # 🏛️ Church Management System - Complete Database Schema
 
+> **Note:** Design reference only. The **authoritative** relational schema is [`server/prisma/schema.prisma`](server/prisma/schema.prisma); apply changes with Prisma migrations (see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)).
+
 ## 📊 Database Schema Design
 
 ### 🎯 Core Tables Structure

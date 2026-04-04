@@ -1,0 +1,68 @@
+# Applies Prisma migrations against the real database (e.g. Supabase).
+# GitHub runners can usually reach db.*.supabase.co:5432 even when your laptop cannot (P1001).
+#
+# Required repository secrets (Settings → Secrets and variables → Actions):
+#   DATABASE_URL  — pooled URL (transaction pooler :6543, include ?pgbouncer=true for Supabase)
+#   DIRECT_URL    — direct Postgres (:5432) for migrate deploy
+#
+# If you already ran migration.sql in the Supabase SQL Editor and see "relation already exists",
+# run this workflow once via "Run workflow" with only_baseline_resolve = true (see inputs below).
+#
+# If GitHub secrets are not set yet: run server/prisma/mark_init_migration_applied.sql in the
+# Supabase SQL Editor instead (same outcome for Prisma history, no :5432 from your laptop).
+
+name: Prisma migrate deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      only_baseline_resolve:
+        description: 'One-time: mark init migration as applied (use when tables exist but _prisma_migrations is empty)'
+        type: boolean
+        default: false
+      migration_name:
+        description: 'Migration folder name for baseline resolve (default init migration)'
+        type: string
+        default: '20260402120000_init'
+  push:
+    branches: [main, master]
+    paths:
+      - 'server/prisma/migrations/**'
+      - 'server/prisma/schema.prisma'
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: prisma-migrate-${{ github.ref }}
+      cancel-in-progress: false
+    defaults:
+      run:
+        working-directory: server
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+
+      - name: Install server dependencies
+        run: npm ci
+
+      # Push always deploys. Manual run deploys unless baseline checkbox is set (avoids 42P07 when SQL was applied in dashboard).
+      - name: Prisma migrate deploy
+        if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.only_baseline_resolve != 'true' }}
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DIRECT_URL: ${{ secrets.DIRECT_URL }}
+        run: npx prisma migrate deploy
+
+      - name: Prisma migrate resolve (baseline — schema already applied manually)
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.only_baseline_resolve == 'true'
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DIRECT_URL: ${{ secrets.DIRECT_URL }}
+        run: npx prisma migrate resolve --applied "${{ github.event.inputs.migration_name }}"

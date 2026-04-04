@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import axios, { isAxiosError } from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { API_BASE_URL } from '../config/api';
 
@@ -39,7 +39,7 @@ const Register: React.FC = () => {
     }
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/auth/register`, {
+      await axios.post(`${API_BASE_URL}/auth/register`, {
         email: formData.email,
         password: formData.password,
         firstName: formData.firstName,
@@ -50,8 +50,24 @@ const Register: React.FC = () => {
       setTimeout(() => {
         navigate('/login');
       }, 2000);
-    } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Registration failed');
+    } catch (err: unknown) {
+      if (isAxiosError(err)) {
+        const apiMsg = err.response?.data?.error?.message;
+        if (apiMsg) {
+          setError(apiMsg);
+        } else if (err.response) {
+          setError(`Registration failed (${err.response.status}).`);
+        } else {
+          const dev = process.env.NODE_ENV === 'development';
+          setError(
+            dev
+              ? `Cannot reach API at ${API_BASE_URL}. Start the server (e.g. npm run dev in server/) and check CORS / port. (${err.message})`
+              : 'Cannot reach the server. Check your connection and that the API is running.'
+          );
+        }
+      } else {
+        setError('Registration failed.');
+      }
     } finally {
       setLoading(false);
     }

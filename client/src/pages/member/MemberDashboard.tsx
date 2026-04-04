@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { API_BASE_URL } from '../../config/api';
+import { logout } from '../../utils/authSession';
 
 interface MemberData {
   name: string;
@@ -47,8 +48,7 @@ const MemberDashboard: React.FC = () => {
   const fetchMemberData = async () => {
     try {
       const token = localStorage.getItem('token');
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
-      const response = await axios.get(`${API_BASE_URL}/member/dashboard/${user.id}`, {
+      const response = await axios.get(`${API_BASE_URL}/member/me/dashboard`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setMemberData(response.data);
@@ -78,7 +78,8 @@ const MemberDashboard: React.FC = () => {
               <span className="text-sm text-gray-500">👤 Member</span>
             </div>
             <button
-              onClick={() => navigate('/')}
+              type="button"
+              onClick={() => logout(navigate)}
               className="text-gray-500 hover:text-gray-700"
             >
               Logout

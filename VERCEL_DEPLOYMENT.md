@@ -1,5 +1,7 @@
 # 🚀 Vercel Deployment Guide
 
+**Two models:** (1) **Static UI on Vercel + full API elsewhere** — host `client/build` and point `REACT_APP_API_URL` at your Express server (Railway, Fly, VPS, etc.) with Postgres + `DATABASE_URL`. (2) **This repo’s `vercel.json` layout** — builds the CRA app and routes `/api/*` to **`api/index.js`** (Supabase-only subset), *not* the Express app. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
 ## Automatic Deployment Setup
 
 ### Prerequisites

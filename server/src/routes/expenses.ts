@@ -1,12 +1,13 @@
 import express from 'express';
 import { PrismaClient } from '@prisma/client';
-import { authMiddleware } from '../middleware/auth';
+import { authMiddleware, requireRole, AuthRequest } from '../middleware/auth';
+import { FINANCE_CORE_ROLES } from '../constants/accessRoles';
 
 const router = express.Router();
 const prisma = new PrismaClient();
 
-// All expense routes will be protected
 router.use(authMiddleware);
+router.use(requireRole(FINANCE_CORE_ROLES));
 
 // Get expenses with pagination and filters
 router.get('/', async (req, res) => {
@@ -406,7 +407,7 @@ router.post('/:id/approve', async (req, res) => {
       where: { id: req.params.id },
       data: {
         status: 'APPROVED',
-        approvedBy: (req as any).user.id,
+        approvedBy: (req as AuthRequest).userId,
         approvedAt: new Date(),
         ...(notes && { notes })
       },
@@ -432,7 +433,7 @@ router.post('/:id/reject', async (req, res) => {
       where: { id: req.params.id },
       data: {
         status: 'REJECTED',
-        approvedBy: (req as any).user.id,
+        approvedBy: (req as AuthRequest).userId,
         approvedAt: new Date(),
         ...(notes && { notes })
       },
@@ -519,7 +520,7 @@ router.post('/bulk-approve', async (req, res) => {
             where: { id: expenseId },
             data: {
               status: 'APPROVED',
-              approvedBy: (req as any).user.id,
+              approvedBy: (req as AuthRequest).userId,
               approvedAt: new Date(),
               ...(notes && { notes })
             }

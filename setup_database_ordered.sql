@@ -1,3 +1,7 @@
+-- =============================================================================
+-- NON-AUTHORITATIVE: Legacy / Supabase / manual SQL. Canonical: server/prisma/schema.prisma
+-- (docs/ARCHITECTURE.md). Use Prisma migrations for the Express app.
+-- =============================================================================
 -- =====================================================
 -- 🏛️ Church Management System - Database Setup (Correct Order)
 -- =====================================================

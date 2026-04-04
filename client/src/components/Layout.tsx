@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
+import { logout } from '../utils/authSession';
+import { sidebarItemsForRole } from '../utils/roles';
 
 interface User {
   id: string;
@@ -30,31 +32,15 @@ const Layout: React.FC = () => {
   }, [navigate]);
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
     setUser(null);
-    navigate('/login');
+    logout(navigate);
   };
-
-  const navigation = [
-    { name: 'Dashboard', href: '/', icon: '📊' },
-    { name: 'Members', href: '/members', icon: '👥' },
-    { name: 'Attendance', href: '/attendance', icon: '✅' },
-    { name: 'Financial', href: '/financial', icon: '💰' },
-    { name: 'Events', href: '/events', icon: '📅' },
-    { name: 'Communications', href: '/communications', icon: '📧' },
-    { name: 'Volunteers', href: '/volunteers', icon: '🤝' },
-    { name: 'Pastoral Care', href: '/pastoral-care', icon: '🙏' },
-    { name: 'Inventory', href: '/inventory', icon: '📦' },
-    { name: 'Expenses', href: '/expenses', icon: '🧾' },
-    { name: 'Vendors', href: '/vendors', icon: '🏢' },
-    { name: 'Budget', href: '/budget', icon: '📈' },
-    { name: 'Reports', href: '/reports', icon: '📋' },
-  ];
 
   if (!user) {
     return null; // Will redirect to login
   }
+
+  const navigation = sidebarItemsForRole(user.role);
 
   return (
     <div className="min-h-screen bg-[#eeedee]">

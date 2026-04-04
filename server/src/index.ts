@@ -1,4 +1,7 @@
+import './loadEnv';
 import express from 'express';
+import path from 'path';
+import fs from 'fs';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
@@ -19,23 +22,56 @@ import expenseRoutes from './routes/expenses';
 import vendorRoutes from './routes/vendors';
 import budgetRoutes from './routes/budget';
 import reportRoutes from './routes/reports';
+import {
+  adminDashboardRouter,
+  accountantDashboardRouter,
+  pastorDashboardRouter,
+  volunteerCoordDashboardRouter,
+  memberPortalRouter,
+} from './routes/roleDashboards';
 
 const app = express();
 const prisma = new PrismaClient();
 
 // Security middleware
-// app.use(helmet()); // Temporarily disabled for debugging
-app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? process.env.FRONTEND_URL 
-    : ['http://localhost:3000', 'http://localhost:3001'],
-  credentials: true
-}));
+app.use(helmet());
 
-// Rate limiting
+const devOriginOk = (origin: string) =>
+  /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
+
+const productionOrigins = () =>
+  (process.env.FRONTEND_URL || '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+      if (process.env.NODE_ENV !== 'production' && devOriginOk(origin)) {
+        callback(null, true);
+        return;
+      }
+      const list = productionOrigins();
+      if (list.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+      callback(null, false);
+    },
+    credentials: true,
+  })
+);
+
+// Rate limiting (skip probes and health)
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100 // limit each IP to 100 requests per windowMs
+  max: 100,
+  skip: (req) => req.path === '/health' || req.path.startsWith('/health/'),
 });
 app.use(limiter);
 
@@ -45,9 +81,23 @@ app.use(morgan('combined'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// Health check endpoint
-app.get('/health', (req, res) => {
+// Liveness (process up) — cheap for load balancers / orchestrators
+app.get('/health', (_req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
+});
+
+// Readiness (database reachable)
+app.get('/health/ready', async (_req, res) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    res.json({ status: 'OK', database: 'connected', timestamp: new Date().toISOString() });
+  } catch (e) {
+    res.status(503).json({
+      status: 'UNAVAILABLE',
+      database: 'disconnected',
+      timestamp: new Date().toISOString(),
+    });
+  }
 });
 
 // API routes
@@ -64,6 +114,29 @@ app.use('/api/expenses', expenseRoutes);
 app.use('/api/vendors', vendorRoutes);
 app.use('/api/budget', budgetRoutes);
 app.use('/api/reports', reportRoutes);
+app.use('/api/admin', adminDashboardRouter);
+app.use('/api/accountant', accountantDashboardRouter);
+app.use('/api/pastor', pastorDashboardRouter);
+app.use('/api/volunteer', volunteerCoordDashboardRouter);
+app.use('/api/member', memberPortalRouter);
+
+// Optional: serve CRA production build from the same origin (set SERVE_STATIC=true)
+const clientDist =
+  process.env.CLIENT_DIST_PATH ||
+  path.resolve(__dirname, '../../client/build');
+if (process.env.SERVE_STATIC === 'true') {
+  if (fs.existsSync(clientDist)) {
+    app.use(express.static(clientDist, { maxAge: '1h', index: false }));
+    app.get('*', (req, res, next) => {
+      if (req.method !== 'GET' && req.method !== 'HEAD') return next();
+      if (req.path.startsWith('/api')) return next();
+      if (req.path === '/health' || req.path.startsWith('/health/')) return next();
+      res.sendFile(path.join(clientDist, 'index.html'), (err) => (err ? next(err) : undefined));
+    });
+  } else {
+    console.warn(`SERVE_STATIC=true but CLIENT_DIST_PATH not found: ${clientDist}`);
+  }
+}
 
 // Error handling middleware
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -87,10 +160,19 @@ async function startServer() {
   try {
     await prisma.$connect();
     console.log('✅ Database connected successfully');
-    
-    app.listen(PORT, () => {
+
+    const server = app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
       console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
+    });
+    server.on('error', (err: NodeJS.ErrnoException) => {
+      if (err.code === 'EADDRINUSE') {
+        console.error(
+          `Port ${PORT} is already in use (another server is running). Stop it or set PORT in server/.env.local.`
+        );
+        process.exit(1);
+      }
+      throw err;
     });
   } catch (error) {
     console.error('❌ Failed to start server:', error);

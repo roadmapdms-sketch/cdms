@@ -1,5 +1,7 @@
 # Church Data Management System (CDMS)
 
+**Architecture:** The default stack is **Express + Prisma + PostgreSQL** in `server/`. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for how this relates to optional Vercel + `api/` (Supabase). **Supabase (hosted Postgres):** [docs/SUPABASE.md](docs/SUPABASE.md). **Deploy / health / Docker:** [docs/RUNBOOK.md](docs/RUNBOOK.md), `Dockerfile`, `docker-compose.yml`.
+
 A comprehensive church management system built with modern web technologies to streamline church operations, member management, financial tracking, and administrative tasks.
 
 ## 🚀 Features

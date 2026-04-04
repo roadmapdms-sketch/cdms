@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const client_1 = require("@prisma/client");
 const auth_1 = require("../middleware/auth");
+const accessRoles_1 = require("../constants/accessRoles");
 const router = express_1.default.Router();
 const prisma = new client_1.PrismaClient();
 // Health check endpoint (no authentication required)
@@ -23,8 +24,8 @@ router.get('/health', async (req, res) => {
         });
     }
 });
-// All report routes will be protected
 router.use(auth_1.authMiddleware);
+router.use((0, auth_1.requireRole)(accessRoles_1.STAFF_MODULE_ROLES));
 // Get comprehensive dashboard statistics
 router.get('/dashboard', async (req, res) => {
     try {
@@ -480,6 +481,66 @@ router.post('/custom', async (req, res) => {
     catch (error) {
         res.status(500).json({
             error: { message: 'Failed to generate custom report' }
+        });
+    }
+});
+// Get events report
+router.get('/events', async (req, res) => {
+    try {
+        const { dateFrom, dateTo, status } = req.query;
+        const where = {};
+        if (dateFrom || dateTo) {
+            where.startDate = {};
+            if (dateFrom)
+                where.startDate.gte = new Date(dateFrom);
+            if (dateTo)
+                where.startDate.lte = new Date(dateTo);
+        }
+        if (status) {
+            where.status = status;
+        }
+        const [totalEvents, eventsByStatus, eventsByType, upcomingEvents] = await Promise.all([
+            prisma.event.count({ where }),
+            prisma.event.groupBy({
+                by: ['status'],
+                where,
+                _count: true
+            }),
+            prisma.event.groupBy({
+                by: ['type'],
+                where,
+                _count: true
+            }),
+            prisma.event.findMany({
+                where: {
+                    ...where,
+                    status: 'PLANNED',
+                    startDate: { gte: new Date() }
+                },
+                orderBy: { startDate: 'asc' },
+                take: 5
+            })
+        ]);
+        res.json({
+            summary: {
+                totalEvents,
+                upcomingEvents: upcomingEvents.length,
+                averageAttendance: '0' // Placeholder
+            },
+            byStatus: eventsByStatus.map(item => ({
+                status: item.status,
+                count: item._count
+            })),
+            byType: eventsByType.map(item => ({
+                type: item.type,
+                count: item._count
+            })),
+            upcoming: upcomingEvents
+        });
+    }
+    catch (error) {
+        res.status(500).json({
+            error: { message: 'Failed to generate events report' }
         });
     }
 });

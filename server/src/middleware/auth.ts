@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
 
-interface AuthRequest extends Request {
+export interface AuthRequest extends Request {
   userId?: string;
   email?: string;
   role?: string;
@@ -36,11 +36,12 @@ export const authMiddleware = async (req: AuthRequest, res: Response, next: Next
   }
 };
 
-export const requireRole = (roles: string[]) => {
-  return (req: AuthRequest, res: Response, next: NextFunction) => {
-    if (!req.role || !roles.includes(req.role)) {
-      return res.status(403).json({ 
-        error: { message: 'Access denied. Insufficient permissions.' } 
+export const requireRole = (roles: readonly string[]) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const r = req as AuthRequest;
+    if (!r.role || !roles.includes(r.role)) {
+      return res.status(403).json({
+        error: { message: 'Access denied. Insufficient permissions.' },
       });
     }
     next();
