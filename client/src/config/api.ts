@@ -1,12 +1,18 @@
 const raw = process.env.REACT_APP_API_URL?.trim().replace(/\/$/, '');
 
 /**
- * REST API base (must end with `/api` path). Vercel: same-origin `/api` when env is unset so production
- * does not fall back to localhost. Local: `REACT_APP_API_URL` or http://localhost:5001/api.
+ * REST API base (must end with `/api`).
+ * - Explicit `REACT_APP_API_URL` always wins (required for full CDMS when API is on another host).
+ * - Production build without env: same-origin `/api` (Vercel rewrites to `api/index.js` — auth only).
+ * - Development (`npm start`): default Express on :5001 — do NOT use window.origin (CRA is on :3000).
  */
 function resolveApiBase(): string {
   if (raw) return raw;
-  if (typeof window !== 'undefined' && window.location?.origin) {
+  if (
+    process.env.NODE_ENV === 'production' &&
+    typeof window !== 'undefined' &&
+    window.location?.origin
+  ) {
     return `${window.location.origin}/api`;
   }
   return 'http://localhost:5001/api';

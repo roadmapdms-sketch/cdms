@@ -19,3 +19,19 @@ Use this only when you intentionally deploy the CRA build to Vercel and want aut
 | `JWT_SECRET` | Yes (production) | Signs JWTs for register/login responses. |
 
 Get the service role key in [Supabase Dashboard](https://supabase.com/dashboard) → your project → **Settings** → **API**.
+
+---
+
+## Full dashboards & data pages (reports, members, finance, …)
+
+The React app is built for the **Express + Prisma API** under `server/` (`/api/reports/dashboard`, `/api/members`, role dashboards, etc.).
+
+**`api/index.js` on Vercel only implements a small subset** (e.g. register/login/health). Any other route returns **“API endpoint not found”**.
+
+To use the full app in production:
+
+1. **Deploy Express** (`server/`) to a Node host (Railway, Render, Fly.io, VPS, etc.) with `DATABASE_URL`, `JWT_SECRET`, `FRONTEND_URL` (your Vercel site URL), and CORS allowing that origin.
+2. In **Vercel** → **Environment variables**, set **`REACT_APP_API_URL`** to your Express API base, e.g. `https://api.yourdomain.com/api` (include `/api`, no trailing slash).
+3. **Redeploy** the Vercel project so the client bundle is rebuilt with that value.
+
+Local dev: keep **`REACT_APP_API_URL=http://localhost:5001/api`** in `client/.env.local` and run **`npm run dev`** (or start client + server separately).
