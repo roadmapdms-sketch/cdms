@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { logout } from '../utils/authSession';
+import { RMI_HERO_LOGO_URL } from '../constants/branding';
 
 export function StatCard({
   label,
@@ -54,7 +55,8 @@ export function RoleDashboardLayout({
     <div className="min-h-screen bg-[#070707] text-zinc-100">
       <header className="relative overflow-hidden border-b border-[#c9a227]/20 bg-gradient-to-r from-black via-[#14110a] to-black">
         <div
-          className="pointer-events-none absolute inset-y-0 right-0 w-[min(100%,520px)] bg-[url('/branding/rmi-hero-logo.png')] bg-contain bg-right bg-no-repeat opacity-[0.08] hidden sm:block"
+          className="pointer-events-none absolute inset-y-0 right-0 hidden w-[min(100%,520px)] bg-contain bg-right bg-no-repeat opacity-[0.08] sm:block"
+          style={{ backgroundImage: `url(${RMI_HERO_LOGO_URL})` }}
           aria-hidden
         />
         <div className="relative mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">

@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import axios, { isAxiosError } from 'axios';
 import { AUTH_API_BASE_URL } from '../config/api';
+import { RMI_HERO_LOGO_URL } from '../constants/branding';
 import { getSafeRedirectParam, canAccessPortalPath } from '../utils/allowedRedirects';
 
 interface LoginFormData {
@@ -104,7 +105,8 @@ const Login: React.FC = () => {
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#050505] py-12 px-4 sm:px-6 lg:px-8">
       <div
-        className="pointer-events-none absolute inset-0 bg-[url('/branding/rmi-hero-logo.png')] bg-[length:min(100vw,640px)] bg-[position:50%_-5%] bg-no-repeat opacity-[0.12]"
+        className="pointer-events-none absolute inset-0 bg-[length:min(100vw,640px)] bg-[position:50%_-5%] bg-no-repeat opacity-[0.12]"
+        style={{ backgroundImage: `url(${RMI_HERO_LOGO_URL})` }}
         aria-hidden
       />
       <div className="absolute inset-0 bg-gradient-to-b from-black via-[#070707]/95 to-[#070707]" />

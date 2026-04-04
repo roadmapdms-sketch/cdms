@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { RMI_HERO_LOGO_URL } from '../constants/branding';
 
 const MODULES = [
   {
@@ -54,7 +55,12 @@ const MODULES = [
   },
 ] as const;
 
-const PORTALS = [
+const PORTALS: Array<{
+  label: string;
+  path: string;
+  desc: string;
+  highlight?: boolean;
+}> = [
   {
     label: 'Administrator',
     path: '/login?redirect=/admin',
@@ -86,14 +92,15 @@ const PORTALS = [
     path: '/login?redirect=/dashboard',
     desc: 'Main console: events, communications, reports, and more',
   },
-] as const;
+];
 
 const LandingPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-black text-zinc-100">
       <section className="relative min-h-[88vh] overflow-hidden">
         <div
-          className="absolute inset-0 bg-[url('/branding/rmi-hero-logo.png')] bg-[length:min(92vw,720px)] bg-[position:50%_18%] bg-no-repeat opacity-[0.22] sm:bg-[position:50%_12%]"
+          className="absolute inset-0 bg-[length:min(92vw,720px)] bg-[position:50%_18%] bg-no-repeat opacity-[0.22] sm:bg-[position:50%_12%]"
+          style={{ backgroundImage: `url(${RMI_HERO_LOGO_URL})` }}
           aria-hidden
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black via-black/92 to-[#070707]" />
