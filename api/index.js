@@ -6,34 +6,72 @@ const { createClient } = require('@supabase/supabase-js');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-// Supabase client - handle module loading properly
+/**
+ * Server-side Supabase client for Vercel only. Prefer service role so RLS does not block register/login.
+ * Never expose SUPABASE_SERVICE_ROLE_KEY to the browser (do not prefix with NEXT_PUBLIC_).
+ */
 let supabase;
 try {
-  // Try multiple environment variable names for Vercel compatibility
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 
-                       process.env.SUPABASE_URL || 
-                       process.env.NEXT_PUBLIC_SUPABASE_URL;
-                       
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY || 
-                        process.env.SUPABASE_PUBLISHABLE_DEFAULT_KEY || 
-                        process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
-  
-  console.log('🔍 Environment variables check:');
-  console.log('NEXT_PUBLIC_SUPABASE_URL:', process.env.NEXT_PUBLIC_SUPABASE_URL ? 'SET' : 'NOT SET');
-  console.log('SUPABASE_URL:', process.env.SUPABASE_URL ? 'SET' : 'NOT SET');
-  console.log('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY:', process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY ? 'SET' : 'NOT SET');
-  console.log('SUPABASE_PUBLISHABLE_DEFAULT_KEY:', process.env.SUPABASE_PUBLISHABLE_DEFAULT_KEY ? 'SET' : 'NOT SET');
-  
-  if (!supabaseUrl || !supabaseKey) {
-    console.error('❌ Supabase environment variables not found');
+  const supabaseUrl =
+    process.env.SUPABASE_URL ||
+    process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const publishableKey =
+    process.env.SUPABASE_PUBLISHABLE_DEFAULT_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
+
+  console.log('🔍 Supabase env:', {
+    url: supabaseUrl ? 'SET' : 'NOT SET',
+    serviceRole: serviceRoleKey ? 'SET' : 'NOT SET',
+    publishable: publishableKey ? 'SET' : 'NOT SET',
+  });
+
+  if (!supabaseUrl) {
+    console.error('❌ Missing SUPABASE_URL or NEXT_PUBLIC_SUPABASE_URL');
     supabase = null;
+  } else if (serviceRoleKey) {
+    supabase = createClient(supabaseUrl, serviceRoleKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+    console.log('✅ Supabase client: service role (RLS bypassed for serverless)');
+  } else if (publishableKey) {
+    supabase = createClient(supabaseUrl, publishableKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+    console.warn(
+      '⚠️ Using publishable key only. Register/login often fails under RLS. Add SUPABASE_SERVICE_ROLE_KEY in Vercel (Settings → Environment Variables).'
+    );
   } else {
-    supabase = createClient(supabaseUrl, supabaseKey);
-    console.log('✅ Supabase client created with URL:', supabaseUrl);
+    console.error('❌ Set SUPABASE_SERVICE_ROLE_KEY or publishable key for Supabase');
+    supabase = null;
   }
 } catch (error) {
   console.error('❌ Supabase client creation failed:', error);
   supabase = null;
+}
+
+function mapSupabaseAuthError(error, fallback) {
+  if (!error) return { status: 500, message: fallback };
+  const msg = String(error.message || '');
+  const code = String(error.code || '');
+  if (code === '23505' || /duplicate key|unique constraint/i.test(msg)) {
+    return { status: 400, message: 'User already exists' };
+  }
+  if (/row-level security|RLS|violates row-level security|42501/i.test(msg)) {
+    return {
+      status: 503,
+      message:
+        'Database blocked this action (Row Level Security). Add SUPABASE_SERVICE_ROLE_KEY to Vercel for this API (server secret only).',
+    };
+  }
+  if (/column .* does not exist|42703/i.test(msg)) {
+    return {
+      status: 500,
+      message:
+        'Database schema mismatch (missing column). Ensure `users` matches Prisma/SQL: firstName, lastName, email, password, etc.',
+    };
+  }
+  return { status: 500, message: fallback };
 }
 
 module.exports = async (req, res) => {
@@ -170,13 +208,17 @@ async function handleRegister(req, res) {
       return res.status(400).json({ error: { message: 'All fields are required' } });
     }
     
-    // Check if user exists
-    const { data: existingUser } = await supabase
+    // Check if user exists (.single() errors when no row; use maybeSingle)
+    const { data: existingUser, error: existingErr } = await supabase
       .from('users')
-      .select('*')
+      .select('id')
       .eq('email', email)
-      .single();
-    
+      .maybeSingle();
+
+    if (existingErr) {
+      const { status, message } = mapSupabaseAuthError(existingErr, 'Failed to verify email');
+      return res.status(status).json({ error: { message } });
+    }
     if (existingUser) {
       return res.status(400).json({ error: { message: 'User already exists' } });
     }
@@ -202,7 +244,8 @@ async function handleRegister(req, res) {
     
     if (error) {
       console.error('Registration error:', error);
-      return res.status(500).json({ error: { message: 'Failed to create user' } });
+      const { status, message } = mapSupabaseAuthError(error, 'Failed to create user');
+      return res.status(status).json({ error: { message } });
     }
     
     // Generate JWT
@@ -241,9 +284,13 @@ async function handleLogin(req, res) {
       .from('users')
       .select('*')
       .eq('email', email)
-      .single();
-    
-    if (error || !user || !user.isActive) {
+      .maybeSingle();
+
+    if (error) {
+      const { status, message } = mapSupabaseAuthError(error, 'Login failed');
+      return res.status(status).json({ error: { message } });
+    }
+    if (!user || !user.isActive) {
       return res.status(401).json({ error: { message: 'Invalid credentials' } });
     }
     
