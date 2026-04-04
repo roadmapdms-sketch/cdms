@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
+import { API_BASE_URL, getMainApiHealthUrl } from '../config/api';
 import { logout } from '../utils/authSession';
 import { sidebarItemsForRole } from '../utils/roles';
 
@@ -12,11 +13,27 @@ interface User {
   role: string;
 }
 
+const HIDE_API_BANNER_KEY = 'cdms-hide-main-api-banner';
+
 const Layout: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [mainApiUnreachable, setMainApiUnreachable] = useState<boolean | null>(null);
+  const [bannerDismissed, setBannerDismissed] = useState(
+    () => localStorage.getItem(HIDE_API_BANNER_KEY) === '1'
+  );
   const navigate = useNavigate();
   const location = useLocation();
+
+  useEffect(() => {
+    if (bannerDismissed) return;
+    const url = getMainApiHealthUrl();
+    const ac = new AbortController();
+    fetch(url, { method: 'GET', signal: ac.signal })
+      .then((r) => setMainApiUnreachable(!r.ok))
+      .catch(() => setMainApiUnreachable(true));
+    return () => ac.abort();
+  }, [bannerDismissed]);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -137,6 +154,32 @@ const Layout: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {mainApiUnreachable === true && !bannerDismissed && (
+          <div className="bg-amber-50 border-b border-amber-200 px-4 py-3 text-sm text-amber-950">
+            <div className="max-w-7xl mx-auto flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <p>
+                <strong>Staff data cannot load.</strong> Members, events, attendance, and other modules need the{' '}
+                <strong>Express API</strong> (<code className="text-xs bg-amber-100 px-1 rounded">server/</code>) running
+                at the host configured in <code className="text-xs bg-amber-100 px-1 rounded">REACT_APP_API_URL</code>{' '}
+                (currently <code className="text-xs bg-amber-100 px-1 rounded break-all">{API_BASE_URL}</code>). Deploy
+                that server (e.g. Railway, Render, Docker) or fix the URL, then redeploy the frontend. Login/register can
+                still use <code className="text-xs bg-amber-100 px-1 rounded">REACT_APP_AUTH_API_URL</code> on the main
+                Vercel app.
+              </p>
+              <button
+                type="button"
+                className="shrink-0 text-amber-900 underline font-medium"
+                onClick={() => {
+                  localStorage.setItem(HIDE_API_BANNER_KEY, '1');
+                  setBannerDismissed(true);
+                }}
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
+        )}
 
         <main className="flex-1">
           <div className="py-6">

@@ -26,3 +26,12 @@ export const API_BASE_URL = resolveApiBase();
  */
 const authRaw = process.env.REACT_APP_AUTH_API_URL?.trim().replace(/\/$/, '');
 export const AUTH_API_BASE_URL = authRaw || API_BASE_URL;
+
+/** Express serves `GET /health` at the origin (not under `/api`). Used to detect a reachable main API. */
+export function getMainApiHealthUrl(): string {
+  const b = API_BASE_URL.replace(/\/$/, '');
+  if (b.endsWith('/api')) {
+    return `${b.slice(0, -4)}/health`;
+  }
+  return `${b}/health`;
+}
