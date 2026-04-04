@@ -62,7 +62,6 @@ const Communications: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [showModal, setShowModal] = useState(false);
-  const [showBulkModal, setShowBulkModal] = useState(false);
   const [showTemplatesModal, setShowTemplatesModal] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<CommunicationTemplate | null>(null);
   const [dateFrom, setDateFrom] = useState('');
@@ -124,23 +123,12 @@ const Communications: React.FC = () => {
 
   const handleCreateCommunication = async (communicationData: any) => {
     try {
-      await axios.post('`${API_BASE_URL}/communications', communicationData);
+      await axios.post(`${API_BASE_URL}/communications`, communicationData);
       fetchCommunications();
       fetchStats();
       setShowModal(false);
     } catch (err: any) {
       setError(err.response?.data?.error?.message || 'Failed to create communication');
-    }
-  };
-
-  const handleBulkCommunication = async (bulkData: any) => {
-    try {
-      await axios.post('`${API_BASE_URL}/communications/bulk', bulkData);
-      fetchCommunications();
-      fetchStats();
-      setShowBulkModal(false);
-    } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Failed to send bulk communication');
     }
   };
 
@@ -322,13 +310,6 @@ const Communications: React.FC = () => {
                 className="btn btn-primary mr-2"
               >
                 New Communication
-              </button>
-              
-              <button
-                onClick={() => setShowBulkModal(true)}
-                className="btn btn-secondary mr-2"
-              >
-                Bulk Send
               </button>
               
               <button

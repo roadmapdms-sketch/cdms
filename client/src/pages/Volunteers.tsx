@@ -131,7 +131,7 @@ const Volunteers: React.FC = () => {
 
   const handleCreateAssignment = async (assignmentData: any) => {
     try {
-      await axios.post('`${API_BASE_URL}/volunteers', assignmentData);
+      await axios.post(`${API_BASE_URL}/volunteers`, assignmentData);
       fetchAssignments();
       fetchStats();
       fetchTopVolunteers();
@@ -143,7 +143,7 @@ const Volunteers: React.FC = () => {
 
   const handleBulkAssignment = async (bulkData: any) => {
     try {
-      await axios.post('`${API_BASE_URL}/volunteers/bulk', bulkData);
+      await axios.post(`${API_BASE_URL}/volunteers/bulk`, bulkData);
       fetchAssignments();
       fetchStats();
       fetchTopVolunteers();

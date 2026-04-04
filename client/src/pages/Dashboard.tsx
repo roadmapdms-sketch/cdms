@@ -69,12 +69,6 @@ const Dashboard: React.FC = () => {
     fetchDashboardStats();
   }, [fetchDashboardStats]);
 
-  const getStatColor = (value: number, thresholds: { good: number; warning: number }) => {
-    if (value >= thresholds.good) return 'text-green-600';
-    if (value >= thresholds.warning) return 'text-[#e7b123]';
-    return 'text-[#7a0f1a]';
-  };
-
   const getRateColor = (rate: string) => {
     const numericRate = parseFloat(rate.replace('%', ''));
     if (numericRate >= 75) return 'text-green-600';

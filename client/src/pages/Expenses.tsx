@@ -122,7 +122,7 @@ const Expenses: React.FC = () => {
 
   const handleCreateExpense = async (expenseData: any) => {
     try {
-      await axios.post('`${API_BASE_URL}/expenses', expenseData);
+      await axios.post(`${API_BASE_URL}/expenses`, expenseData);
       fetchExpenses();
       fetchStats();
       fetchPendingExpenses();
@@ -167,7 +167,7 @@ const Expenses: React.FC = () => {
 
   const handleBulkApprove = async (bulkData: any) => {
     try {
-      await axios.post('`${API_BASE_URL}/expenses/bulk-approve', bulkData);
+      await axios.post(`${API_BASE_URL}/expenses/bulk-approve`, bulkData);
       fetchExpenses();
       fetchStats();
       fetchPendingExpenses();

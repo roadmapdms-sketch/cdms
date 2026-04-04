@@ -45,8 +45,6 @@ const Attendance: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [showBulkModal, setShowBulkModal] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState('');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
 
@@ -100,17 +98,6 @@ const Attendance: React.FC = () => {
       setShowAddModal(false);
     } catch (err: any) {
       setError(err.response?.data?.error?.message || 'Failed to record attendance');
-    }
-  };
-
-  const handleBulkAttendance = async (bulkData: any) => {
-    try {
-      await axios.post('`${API_BASE_URL}/attendance/bulk', bulkData);
-      fetchAttendance();
-      fetchStats();
-      setShowBulkModal(false);
-    } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Failed to record bulk attendance');
     }
   };
 
@@ -242,13 +229,6 @@ const Attendance: React.FC = () => {
                 className="btn btn-primary mr-2"
               >
                 Record Attendance
-              </button>
-              
-              <button
-                onClick={() => setShowBulkModal(true)}
-                className="btn btn-secondary"
-              >
-                Bulk Record
               </button>
             </div>
           </div>

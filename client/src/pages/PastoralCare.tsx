@@ -119,7 +119,7 @@ const PastoralCare: React.FC = () => {
 
   const handleCreateRecord = async (recordData: any) => {
     try {
-      await axios.post('`${API_BASE_URL}/pastoral-care', recordData);
+      await axios.post(`${API_BASE_URL}/pastoral-care`, recordData);
       fetchRecords();
       fetchStats();
       fetchFollowUps();
@@ -131,7 +131,7 @@ const PastoralCare: React.FC = () => {
 
   const handleBulkUpdate = async (bulkData: any) => {
     try {
-      await axios.post('`${API_BASE_URL}/pastoral-care/bulk-update', bulkData);
+      await axios.post(`${API_BASE_URL}/pastoral-care/bulk-update`, bulkData);
       fetchRecords();
       fetchStats();
       fetchFollowUps();

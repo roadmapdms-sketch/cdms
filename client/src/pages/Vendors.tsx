@@ -70,7 +70,7 @@ const Vendors: React.FC = () => {
 
   const fetchStats = useCallback(async () => {
     try {
-      const response = await axios.get('`${API_BASE_URL}/vendors/stats/overview');
+      const response = await axios.get(`${API_BASE_URL}/vendors/stats/overview`);
       setStats(response.data);
     } catch (err: any) {
       console.error('Failed to fetch stats:', err);
@@ -79,7 +79,7 @@ const Vendors: React.FC = () => {
 
   const fetchActiveVendors = useCallback(async () => {
     try {
-      const response = await axios.get('`${API_BASE_URL}/vendors/active/list?limit=5');
+      const response = await axios.get(`${API_BASE_URL}/vendors/active/list?limit=5`);
       setActiveVendors(response.data.vendors);
     } catch (err: any) {
       console.error('Failed to fetch active vendors:', err);
@@ -94,7 +94,7 @@ const Vendors: React.FC = () => {
 
   const handleCreateVendor = async (vendorData: any) => {
     try {
-      await axios.post('`${API_BASE_URL}/vendors', vendorData);
+      await axios.post(`${API_BASE_URL}/vendors`, vendorData);
       fetchVendors();
       fetchStats();
       fetchActiveVendors();
@@ -117,7 +117,7 @@ const Vendors: React.FC = () => {
 
   const handleBulkUpdate = async (bulkData: any) => {
     try {
-      await axios.post('`${API_BASE_URL}/vendors/bulk-update', bulkData);
+      await axios.post(API_BASE_URL + '/vendors/bulk-update', bulkData);
       fetchVendors();
       fetchStats();
       fetchActiveVendors();

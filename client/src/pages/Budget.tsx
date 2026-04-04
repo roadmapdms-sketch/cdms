@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { API_BASE_URL } from '../config/api';
 import axios from 'axios';
 
-interface Budget {
+interface BudgetRecord {
   id: string;
   category: string;
   description?: string;
@@ -29,25 +29,10 @@ interface BudgetStats {
   period: string;
 }
 
-interface BudgetUtilization {
-  id: string;
-  category: string;
-  description?: string;
-  amount: number;
-  spent: number;
-  remaining: number;
-  utilizationRate: string;
-  overBudget: boolean;
-  period: string;
-  startDate: string;
-  endDate: string;
-  status: string;
-}
-
 const Budget: React.FC = () => {
-  const [budgets, setBudgets] = useState<Budget[]>([]);
+  const [budgets, setBudgets] = useState<BudgetRecord[]>([]);
   const [stats, setStats] = useState<BudgetStats | null>(null);
-  const [activeBudgets, setActiveBudgets] = useState<Budget[]>([]);
+  const [activeBudgets, setActiveBudgets] = useState<BudgetRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
@@ -60,7 +45,7 @@ const Budget: React.FC = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [showModal, setShowModal] = useState(false);
   const [showUpdateSpentModal, setShowUpdateSpentModal] = useState(false);
-  const [selectedBudget, setSelectedBudget] = useState<Budget | null>(null);
+  const [selectedBudget, setSelectedBudget] = useState<BudgetRecord | null>(null);
 
   const fetchBudgets = useCallback(async () => {
     try {
@@ -117,7 +102,7 @@ const Budget: React.FC = () => {
 
   const handleCreateBudget = async (budgetData: any) => {
     try {
-      await axios.post('`${API_BASE_URL}/budget', budgetData);
+      await axios.post(`${API_BASE_URL}/budget`, budgetData);
       fetchBudgets();
       fetchStats();
       fetchActiveBudgets();
@@ -174,35 +159,6 @@ const Budget: React.FC = () => {
         return 'bg-blue-100 text-blue-800';
       case 'CANCELLED':
         return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case 'GENERAL':
-        return 'bg-purple-100 text-purple-800';
-      case 'EVENTS':
-        return 'bg-indigo-100 text-indigo-800';
-      case 'MAINTENANCE':
-        return 'bg-blue-100 text-blue-800';
-      case 'SALARIES':
-        return 'bg-green-100 text-green-800';
-      case 'MARKETING':
-        return 'bg-pink-100 text-pink-800';
-      case 'OUTREACH':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'EDUCATION':
-        return 'bg-orange-100 text-orange-800';
-      case 'MISSIONS':
-        return 'bg-red-100 text-red-800';
-      case 'WORSHIP':
-        return 'bg-teal-100 text-teal-800';
-      case 'ADMINISTRATION':
-        return 'bg-gray-100 text-gray-800';
-      case 'OTHER':
-        return 'bg-gray-100 text-gray-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }

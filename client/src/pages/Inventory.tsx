@@ -80,7 +80,6 @@ const Inventory: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
-  const [showHistory, setShowHistory] = useState(false);
 
   const fetchItems = useCallback(async () => {
     try {
@@ -108,7 +107,7 @@ const Inventory: React.FC = () => {
 
   const fetchStats = useCallback(async () => {
     try {
-      const response = await axios.get('`${API_BASE_URL}/inventory/stats/overview');
+      const response = await axios.get(`${API_BASE_URL}/inventory/stats/overview`);
       setStats(response.data);
     } catch (err: any) {
       console.error('Failed to fetch stats:', err);
@@ -117,7 +116,7 @@ const Inventory: React.FC = () => {
 
   const fetchCategories = useCallback(async () => {
     try {
-      const response = await axios.get('`${API_BASE_URL}/inventory/categories/list');
+      const response = await axios.get(`${API_BASE_URL}/inventory/categories/list`);
       setCategories(response.data.categories);
     } catch (err: any) {
       console.error('Failed to fetch categories:', err);
@@ -126,7 +125,7 @@ const Inventory: React.FC = () => {
 
   const fetchCheckouts = useCallback(async () => {
     try {
-      const response = await axios.get('`${API_BASE_URL}/inventory/checkouts/history?limit=5');
+      const response = await axios.get(`${API_BASE_URL}/inventory/checkouts/history?limit=5`);
       setCheckouts(response.data.checkouts);
     } catch (err: any) {
       console.error('Failed to fetch checkouts:', err);
@@ -142,7 +141,7 @@ const Inventory: React.FC = () => {
 
   const handleCreateItem = async (itemData: any) => {
     try {
-      await axios.post('`${API_BASE_URL}/inventory', itemData);
+      await axios.post(`${API_BASE_URL}/inventory`, itemData);
       fetchItems();
       fetchStats();
       setShowModal(false);
@@ -406,13 +405,6 @@ const Inventory: React.FC = () => {
                 className="btn btn-primary mr-2"
               >
                 Add Item
-              </button>
-              
-              <button
-                onClick={() => setShowHistory(true)}
-                className="btn btn-secondary"
-              >
-                History
               </button>
             </div>
           </div>
