@@ -5,7 +5,7 @@
   "installCommand": "npm run install:all",
   "functions": {
     "api/index.js": {
-      "maxDuration": 30
+      "maxDuration": 60
     }
   },
   "rewrites": [

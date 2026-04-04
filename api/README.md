@@ -1,43 +1,24 @@
-# Vercel serverless API (optional)
+# Vercel `api/` entry
 
-This directory is **not** the main CDMS backend.
+**`api/index.js`** loads the **full Express app** from `server/dist/app.js`. Vercel rewrites `/api/*` to this function, so the SPA and API share one deployment (e.g. `https://cdms-phi.vercel.app`).
 
-- **Default / full API:** `server/` (Express + Prisma + PostgreSQL). See [docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md).
-- **`api/index.js`:** A serverless router for Vercel that uses **Supabase** (`@supabase/supabase-js`) for a narrow set of endpoints (e.g. login/register against a Supabase `users` table). It does **not** mirror all routes under `server/src/routes/`.
+- **Local development:** run `cd server && npm run dev` (or root `npm run dev`). Do not rely on this file locally.
+- **Legacy:** the old Supabase-only handler was moved to `legacy-supabase-serverless.js` if you need to reference it.
 
-`vercel.json` rewrites `/api/*` to `api/index.js` for deployments that use this layout.
+## Build
 
-Use this only when you intentionally deploy the CRA build to Vercel and want auth against Supabase without running the Express server. For normal development, run `npm run dev` from the repo root and use Prisma + `server`.
+Root `npm run build` (used by Vercel) runs `build.sh`: CRA → `client/build`, then `server/` → `prisma generate` + `tsc`.
 
 ## Vercel environment variables
 
 | Variable | Required | Notes |
 |----------|----------|--------|
-| `SUPABASE_URL` or `NEXT_PUBLIC_SUPABASE_URL` | Yes | Project URL |
-| **`SUPABASE_SERVICE_ROLE_KEY`** | **Strongly recommended** | From Supabase → Project Settings → API → **service_role** (secret). Server-only; never `NEXT_PUBLIC_*`. Without it, register/login usually fails because **RLS** blocks the publishable key. |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY` | If no service role | Publishable key; often insufficient for `INSERT` into `users` under default RLS. |
-| `JWT_SECRET` | Yes (production) | Signs JWTs for register/login responses. |
+| `DATABASE_URL` | Yes | Postgres (e.g. Supabase **transaction** pooler + `?pgbouncer=true`). |
+| `DIRECT_URL` | Yes* | Prisma schema expects it; use the same as `DATABASE_URL` if you only have the pooler, or Supabase **direct** `:5432` when available. |
+| `JWT_SECRET` | Yes | Strong random string. |
+| `FRONTEND_URL` | Yes | Your site origin(s), comma-separated, e.g. `https://cdms-phi.vercel.app`. CORS + `VERCEL_URL` is also allowed automatically when `VERCEL=1`. |
+| `NODE_ENV` | Recommended | `production` |
 
-Get the service role key in [Supabase Dashboard](https://supabase.com/dashboard) → your project → **Settings** → **API**.
+**Optional (client):** leave **`REACT_APP_API_URL`** unset on Vercel so the app uses **same-origin** `/api`. Only set it if the API is hosted elsewhere.
 
----
-
-## Full dashboards & data pages (reports, members, finance, …)
-
-The React app is built for the **Express + Prisma API** under `server/` (`/api/reports/dashboard`, `/api/members`, role dashboards, etc.).
-
-**`api/index.js` on Vercel only implements a small subset** (e.g. register/login/health). Any other route returns **“API endpoint not found”**.
-
-To use the full app in production:
-
-1. **Deploy Express** (`server/`) to a Node host (Railway, Render, Fly.io, VPS, etc.) with `DATABASE_URL`, `JWT_SECRET`, `FRONTEND_URL` (your Vercel site URL), and CORS allowing that origin.
-2. In **Vercel** → **Environment variables**, set **`REACT_APP_API_URL`** to your Express API base, e.g. `https://api.yourdomain.com/api` (include `/api`, no trailing slash).
-3. **Redeploy** the Vercel project so the client bundle is rebuilt with that value.
-
-Local dev: keep **`REACT_APP_API_URL=http://localhost:5001/api`** in `client/.env.local` and run **`npm run dev`** (or start client + server separately).
-
-### Auth vs full API (split URL)
-
-If **`REACT_APP_API_URL`** is your Express server but that host is **not reachable** (wrong DNS, deploy down), **register/login** will fail with a network error because they use the same base URL as dashboards.
-
-Set **`REACT_APP_AUTH_API_URL`** to your **main Vercel app** origin + `/api` (where `api/index.js` runs), e.g. `https://cdms-phi.vercel.app/api`, while keeping **`REACT_APP_API_URL`** pointed at Express for when it is fixed. Redeploy the **frontend** after changing env vars.
+Prisma on Vercel uses `binaryTargets` including `rhel-openssl-3.0.x` in `schema.prisma`.

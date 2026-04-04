@@ -1,16 +1,17 @@
 #!/bin/bash
+set -e
 
-echo "🔨 Starting build process..."
+echo "🔨 Building CDMS for Vercel (client + server)…"
 
-# Install dependencies
-echo "📦 Installing dependencies..."
-npm install
-
-# Build client
-echo "🏗️ Building React client..."
+echo "🏗️ React client…"
 cd client
 ESLINT_NO_DEV_ERRORS=true npm run build
 cd ..
 
-echo "✅ Build completed successfully!"
-echo "📁 Build output available in client/build/"
+echo "🏗️ Express API + Prisma…"
+cd server
+npx prisma generate
+npm run build
+cd ..
+
+echo "✅ Build complete — client/build + server/dist"

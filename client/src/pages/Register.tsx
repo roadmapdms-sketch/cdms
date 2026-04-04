@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios, { isAxiosError } from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { API_BASE_URL, AUTH_API_BASE_URL } from '../config/api';
+import { AUTH_API_BASE_URL } from '../config/api';
 
 const Register: React.FC = () => {
   const [formData, setFormData] = useState({
