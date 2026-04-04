@@ -35,3 +35,9 @@ To use the full app in production:
 3. **Redeploy** the Vercel project so the client bundle is rebuilt with that value.
 
 Local dev: keep **`REACT_APP_API_URL=http://localhost:5001/api`** in `client/.env.local` and run **`npm run dev`** (or start client + server separately).
+
+### Auth vs full API (split URL)
+
+If **`REACT_APP_API_URL`** is your Express server but that host is **not reachable** (wrong DNS, deploy down), **register/login** will fail with a network error because they use the same base URL as dashboards.
+
+Set **`REACT_APP_AUTH_API_URL`** to your **main Vercel app** origin + `/api` (where `api/index.js` runs), e.g. `https://cdms-phi.vercel.app/api`, while keeping **`REACT_APP_API_URL`** pointed at Express for when it is fixed. Redeploy the **frontend** after changing env vars.

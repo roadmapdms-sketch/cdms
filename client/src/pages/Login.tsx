@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { API_BASE_URL } from '../config/api';
+import axios, { isAxiosError } from 'axios';
+import { AUTH_API_BASE_URL } from '../config/api';
 
 interface LoginFormData {
   email: string;
@@ -31,7 +31,7 @@ const Login: React.FC = () => {
     setError('');
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/auth/login`, formData);
+      const response = await axios.post(`${AUTH_API_BASE_URL}/auth/login`, formData);
       
       // Store token and user data
       localStorage.setItem('token', response.data.token);
@@ -62,8 +62,16 @@ const Login: React.FC = () => {
           navigate('/dashboard');
           break;
       }
-    } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Login failed');
+    } catch (err: unknown) {
+      if (isAxiosError(err) && err.response?.data?.error?.message) {
+        setError(err.response.data.error.message);
+      } else if (isAxiosError(err) && !err.response) {
+        setError(
+          'Cannot reach the sign-in service. Check REACT_APP_AUTH_API_URL or your API host, then redeploy.'
+        );
+      } else {
+        setError('Login failed');
+      }
     } finally {
       setLoading(false);
     }

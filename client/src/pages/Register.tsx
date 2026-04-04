@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios, { isAxiosError } from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { API_BASE_URL } from '../config/api';
+import { API_BASE_URL, AUTH_API_BASE_URL } from '../config/api';
 
 const Register: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -39,7 +39,7 @@ const Register: React.FC = () => {
     }
 
     try {
-      await axios.post(`${API_BASE_URL}/auth/register`, {
+      await axios.post(`${AUTH_API_BASE_URL}/auth/register`, {
         email: formData.email,
         password: formData.password,
         firstName: formData.firstName,
@@ -61,8 +61,8 @@ const Register: React.FC = () => {
           const dev = process.env.NODE_ENV === 'development';
           setError(
             dev
-              ? `Cannot reach API at ${API_BASE_URL}. Start the server (e.g. npm run dev in server/) and check CORS / port. (${err.message})`
-              : 'Cannot reach the server. Check your connection and that the API is running.'
+              ? `Cannot reach API at ${AUTH_API_BASE_URL}. Start the server (e.g. npm run dev in server/) and check CORS / port. (${err.message})`
+              : 'Cannot reach the sign-up service. If REACT_APP_API_URL points to an API host that is down, set REACT_APP_AUTH_API_URL to your main Vercel URL with /api (see api/README.md), redeploy, and try again.'
           );
         }
       } else {

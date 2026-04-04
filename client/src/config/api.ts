@@ -19,3 +19,10 @@ function resolveApiBase(): string {
 }
 
 export const API_BASE_URL = resolveApiBase();
+
+/**
+ * Login/register only. Use when `REACT_APP_API_URL` points at an offline Express host but auth
+ * should hit Vercel serverless on the main app: set e.g. REACT_APP_AUTH_API_URL=https://YOUR-APP.vercel.app/api
+ */
+const authRaw = process.env.REACT_APP_AUTH_API_URL?.trim().replace(/\/$/, '');
+export const AUTH_API_BASE_URL = authRaw || API_BASE_URL;
