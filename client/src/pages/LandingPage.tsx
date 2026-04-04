@@ -98,13 +98,18 @@ const LandingPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-black text-zinc-100">
       <section className="relative min-h-[88vh] overflow-hidden">
+        {/* Full-bleed watermark: wide logo reads best from the top */}
         <div
-          className="absolute inset-0 bg-[length:min(92vw,720px)] bg-[position:50%_18%] bg-no-repeat opacity-[0.22] sm:bg-[position:50%_12%]"
+          className="absolute inset-0 bg-[length:min(120vw,920px)] bg-[position:50%_0%] bg-no-repeat opacity-[0.38] sm:bg-[length:min(100vw,820px)]"
           style={{ backgroundImage: `url(${RMI_HERO_LOGO_URL})` }}
           aria-hidden
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black via-black/92 to-[#070707]" />
-        <div className="absolute inset-0 bg-gradient-to-r from-black via-transparent to-black opacity-80" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black via-black/88 to-[#070707]" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black via-black/20 to-black opacity-90" />
+        <div
+          className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_20%,transparent_0%,#000_75%)] opacity-95"
+          aria-hidden
+        />
 
         <div className="relative z-10 mx-auto flex min-h-[88vh] max-w-6xl flex-col justify-center px-4 pb-16 pt-24 sm:px-6 lg:px-8">
           <p className="text-center text-[0.7rem] uppercase tracking-[0.35em] text-[#c9a227]/90 sm:text-xs">

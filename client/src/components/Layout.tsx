@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { API_BASE_URL, getMainApiHealthUrl } from '../config/api';
+import { RMI_HERO_LOGO_URL } from '../constants/branding';
 import { logout } from '../utils/authSession';
 import { getDefaultHomePath, sidebarItemsForRole } from '../utils/roles';
 
@@ -74,8 +75,13 @@ const Layout: React.FC = () => {
             sidebarOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
         >
-          <div className="flex h-16 items-center justify-between border-b border-[#c9a227]/20 bg-gradient-to-r from-black to-[#14110a] px-4">
-            <div>
+          <div className="flex h-auto min-h-16 flex-col justify-center gap-2 border-b border-[#c9a227]/20 bg-gradient-to-r from-black to-[#14110a] px-4 py-3">
+            <img
+              src={RMI_HERO_LOGO_URL}
+              alt=""
+              className="mx-auto h-10 w-auto max-w-[200px] object-contain opacity-90"
+            />
+            <div className="text-center">
               <span className="text-[0.65rem] uppercase tracking-[0.2em] text-[#c9a227]/80">RMI</span>
               <span className="block text-lg font-semibold text-[#f5e6b8]">CDMS</span>
             </div>
@@ -127,9 +133,16 @@ const Layout: React.FC = () => {
       <div className="hidden md:fixed md:inset-y-0 md:flex md:w-64 md:flex-col">
         <div className="flex grow flex-col overflow-y-auto border-r border-[#c9a227]/20 bg-[#080808] pb-4 pt-5">
           <div className="flex-shrink-0 px-4">
-            <span className="text-[0.65rem] uppercase tracking-[0.25em] text-[#c9a227]/80">Roadmap Ministry</span>
-            <span className="mt-1 block text-xl font-semibold text-[#f5e6b8]">CDMS</span>
-            <p className="mt-1 text-xs text-zinc-600">Operations console</p>
+            <img
+              src={RMI_HERO_LOGO_URL}
+              alt="Roadmap Ministry International"
+              className="mx-auto h-14 w-auto max-w-[220px] object-contain drop-shadow-[0_0_12px_rgba(201,162,39,0.2)]"
+            />
+            <span className="mt-3 block text-center text-[0.65rem] uppercase tracking-[0.25em] text-[#c9a227]/80">
+              Roadmap Ministry
+            </span>
+            <span className="mt-1 block text-center text-xl font-semibold text-[#f5e6b8]">CDMS</span>
+            <p className="mt-1 text-center text-xs text-zinc-600">Operations console</p>
           </div>
           <nav className="mt-8 flex-1 space-y-1 px-2">
             {navigation.map((item) => (
@@ -172,8 +185,13 @@ const Layout: React.FC = () => {
             ☰
           </button>
           <div className="flex flex-1 items-center justify-between px-4 md:px-6">
-            <div className="flex-1">
-              <h1 className="text-lg font-semibold text-[#f5e6b8]">
+            <div className="flex min-w-0 flex-1 items-center gap-3">
+              <img
+                src={RMI_HERO_LOGO_URL}
+                alt=""
+                className="hidden h-9 w-auto shrink-0 object-contain opacity-85 sm:block md:h-10"
+              />
+              <h1 className="truncate text-lg font-semibold text-[#f5e6b8]">
                 {navigation.find((item) => item.href === location.pathname)?.name || 'Dashboard'}
               </h1>
             </div>

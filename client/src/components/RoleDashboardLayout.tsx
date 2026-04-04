@@ -53,12 +53,24 @@ export function RoleDashboardLayout({
   const navigate = useNavigate();
   return (
     <div className="min-h-screen bg-[#070707] text-zinc-100">
-      <header className="relative overflow-hidden border-b border-[#c9a227]/20 bg-gradient-to-r from-black via-[#14110a] to-black">
-        <div
-          className="pointer-events-none absolute inset-y-0 right-0 hidden w-[min(100%,520px)] bg-contain bg-right bg-no-repeat opacity-[0.08] sm:block"
-          style={{ backgroundImage: `url(${RMI_HERO_LOGO_URL})` }}
-          aria-hidden
-        />
+      <header className="border-b border-[#c9a227]/25">
+        {/* Upper brand strip — same asset as landing; visible on every role portal (/admin, /pastor, etc.) */}
+        <div className="relative overflow-hidden bg-black">
+          <div
+            className="pointer-events-none absolute inset-0 bg-[length:min(110vw,800px)] bg-[position:50%_0%] bg-no-repeat opacity-[0.2]"
+            style={{ backgroundImage: `url(${RMI_HERO_LOGO_URL})` }}
+            aria-hidden
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/40 to-black" aria-hidden />
+          <div className="relative mx-auto flex max-w-7xl justify-center px-4 py-5 sm:px-6 sm:py-7 lg:px-8">
+            <img
+              src={RMI_HERO_LOGO_URL}
+              alt="Roadmap Ministry International"
+              className="h-[clamp(4.25rem,16vw,9.5rem)] w-auto max-w-[min(100%,34rem)] object-contain drop-shadow-[0_0_28px_rgba(201,162,39,0.22)]"
+            />
+          </div>
+        </div>
+        <div className="relative overflow-hidden border-t border-[#c9a227]/15 bg-gradient-to-r from-black via-[#14110a] to-black">
         <div className="relative mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
           <div>
             <p className="text-[0.65rem] uppercase tracking-[0.28em] text-[#c9a227]/75 sm:text-xs">
@@ -92,6 +104,7 @@ export function RoleDashboardLayout({
               Sign out
             </button>
           </div>
+        </div>
         </div>
       </header>
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">{children}</div>
