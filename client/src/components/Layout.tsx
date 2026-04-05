@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import StaffAppShell, { StaffAppShellUser } from './StaffAppShell';
-import { getDefaultHomePath, sidebarItemsForRole } from '../utils/roles';
+import { getDefaultHomePath, navItemsForStaffSession, staffShellSidebarTagline } from '../utils/roles';
 
 const Layout: React.FC = () => {
   const [user, setUser] = useState<StaffAppShellUser | null>(null);
@@ -25,7 +25,7 @@ const Layout: React.FC = () => {
     return null;
   }
 
-  const navigation = sidebarItemsForRole(user.role);
+  const navigation = navItemsForStaffSession(user.role);
   const roleHome = getDefaultHomePath(user.role);
   const headerTitle =
     navigation.find((item) => item.href === location.pathname)?.name || 'Dashboard';
@@ -36,6 +36,7 @@ const Layout: React.FC = () => {
       navigation={navigation}
       roleHome={roleHome}
       headerTitle={headerTitle}
+      sidebarTagline={staffShellSidebarTagline(user.role)}
       showApiHealthBanner
     >
       <Outlet />

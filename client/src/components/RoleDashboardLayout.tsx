@@ -4,7 +4,7 @@ import axios from 'axios';
 import StaffAppShell, { StaffAppShellUser } from './StaffAppShell';
 import { logout } from '../utils/authSession';
 import { RMI_HERO_LOGO_URL } from '../constants/branding';
-import { getDefaultHomePath, sidebarItemsForRole } from '../utils/roles';
+import { getDefaultHomePath, navItemsForStaffSession, staffShellSidebarTagline } from '../utils/roles';
 
 export function StatCard({
   label,
@@ -77,7 +77,7 @@ export function RoleDashboardLayout({
         </div>
       );
     }
-    const navigation = sidebarItemsForRole(user.role);
+    const navigation = navItemsForStaffSession(user.role);
     const roleHome = getDefaultHomePath(user.role);
     return (
       <StaffAppShell
@@ -86,6 +86,7 @@ export function RoleDashboardLayout({
         roleHome={roleHome}
         headerTitle={title}
         headerSubtitle={roleBadge}
+        sidebarTagline={staffShellSidebarTagline(user.role)}
         showApiHealthBanner
         mainInnerClassName="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
       >
@@ -160,7 +161,7 @@ export function RoleDashboardLoading({ showStaffSidebar = true }: { showStaffSid
   }, []);
 
   if (showStaffSidebar && user) {
-    const navigation = sidebarItemsForRole(user.role);
+    const navigation = navItemsForStaffSession(user.role);
     const roleHome = getDefaultHomePath(user.role);
     return (
       <StaffAppShell
@@ -168,6 +169,7 @@ export function RoleDashboardLoading({ showStaffSidebar = true }: { showStaffSid
         navigation={navigation}
         roleHome={roleHome}
         headerTitle="Loading…"
+        sidebarTagline={staffShellSidebarTagline(user.role)}
         showApiHealthBanner={false}
         mainInnerClassName="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
       >

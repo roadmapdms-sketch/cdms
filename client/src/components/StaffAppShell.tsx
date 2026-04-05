@@ -29,6 +29,8 @@ export interface StaffAppShellProps {
   showApiHealthBanner?: boolean;
   /** Extra classes on the inner main wrapper (default matches Layout). */
   mainInnerClassName?: string;
+  /** Shown under “DMS” in the sidebar (e.g. “Pastoral portal”). */
+  sidebarTagline?: string;
 }
 
 const StaffAppShell: React.FC<StaffAppShellProps> = ({
@@ -40,6 +42,7 @@ const StaffAppShell: React.FC<StaffAppShellProps> = ({
   children,
   showApiHealthBanner = true,
   mainInnerClassName = 'max-w-7xl mx-auto px-4 sm:px-6 md:px-8',
+  sidebarTagline = 'Operations console',
 }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [mainApiUnreachable, setMainApiUnreachable] = useState<boolean | null>(null);
@@ -81,6 +84,8 @@ const StaffAppShell: React.FC<StaffAppShellProps> = ({
     ? 'rounded-lg px-2 py-2 text-xs uppercase tracking-wider text-[#f4e4a8] bg-[#c9a227]/10'
     : 'rounded-lg px-2 py-2 text-xs uppercase tracking-wider text-[#c9a227]/90 hover:bg-[#c9a227]/10';
 
+  const showFooterPortalShortcut = !navigation.some((n) => n.href === roleHome);
+
   return (
     <div className="min-h-screen bg-[#0c0c0c]">
       <div className={`fixed inset-0 z-40 md:hidden ${sidebarOpen ? '' : 'pointer-events-none'}`}>
@@ -102,6 +107,7 @@ const StaffAppShell: React.FC<StaffAppShellProps> = ({
             <div className="text-center">
               <span className="text-[0.65rem] uppercase tracking-[0.2em] text-[#c9a227]/80">RMI</span>
               <span className="block text-lg font-semibold text-[#f5e6b8]">DMS</span>
+              <span className="mt-0.5 block text-[0.65rem] text-zinc-500">{sidebarTagline}</span>
             </div>
             <button
               type="button"
@@ -114,7 +120,7 @@ const StaffAppShell: React.FC<StaffAppShellProps> = ({
           <nav className="flex-1 space-y-1 overflow-y-auto px-2 py-4">
             {navigation.map((item) => (
               <Link
-                key={item.name}
+                key={item.href}
                 to={item.href}
                 className={navLinkClass(item.href, location.pathname === item.href)}
                 onClick={() => setSidebarOpen(false)}
@@ -124,16 +130,18 @@ const StaffAppShell: React.FC<StaffAppShellProps> = ({
               </Link>
             ))}
             <div className="mt-6 border-t border-zinc-800 pt-4">
-              <Link
-                to={roleHome}
-                className={`block ${portalHomeClass}`}
-                onClick={() => setSidebarOpen(false)}
-              >
-                ← Role portal home
-              </Link>
+              {showFooterPortalShortcut ? (
+                <Link
+                  to={roleHome}
+                  className={`block ${portalHomeClass}`}
+                  onClick={() => setSidebarOpen(false)}
+                >
+                  ← Portal home
+                </Link>
+              ) : null}
               <Link
                 to="/"
-                className="mt-1 block rounded-lg px-2 py-2 text-xs text-zinc-500 hover:text-[#c9a227]"
+                className={`block rounded-lg px-2 py-2 text-xs text-zinc-500 hover:text-[#c9a227] ${showFooterPortalShortcut ? 'mt-1' : ''}`}
                 onClick={() => setSidebarOpen(false)}
               >
                 Marketing site
@@ -155,12 +163,12 @@ const StaffAppShell: React.FC<StaffAppShellProps> = ({
               Roadmap Ministry
             </span>
             <span className="mt-1 block text-center text-xl font-semibold text-[#f5e6b8]">DMS</span>
-            <p className="mt-1 text-center text-xs text-zinc-600">All features</p>
+            <p className="mt-1 text-center text-xs text-zinc-500">{sidebarTagline}</p>
           </div>
           <nav className="mt-6 flex-1 space-y-1 px-2">
             {navigation.map((item) => (
               <Link
-                key={item.name}
+                key={item.href}
                 to={item.href}
                 className={navLinkClass(item.href, location.pathname === item.href)}
               >
@@ -170,10 +178,15 @@ const StaffAppShell: React.FC<StaffAppShellProps> = ({
             ))}
           </nav>
           <div className="mt-auto border-t border-zinc-800 px-4 pt-4">
-            <Link to={roleHome} className={`block py-2 font-medium ${portalHomeClass}`}>
-              ← Role portal home
-            </Link>
-            <Link to="/" className="mt-1 block py-2 text-xs text-zinc-600 hover:text-[#c9a227]">
+            {showFooterPortalShortcut ? (
+              <Link to={roleHome} className={`block py-2 font-medium ${portalHomeClass}`}>
+                ← Portal home
+              </Link>
+            ) : null}
+            <Link
+              to="/"
+              className={`block py-2 text-xs text-zinc-600 hover:text-[#c9a227] ${showFooterPortalShortcut ? 'mt-1' : ''}`}
+            >
               Marketing site
             </Link>
           </div>
