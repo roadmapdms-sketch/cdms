@@ -75,10 +75,12 @@ const PastorDashboard: React.FC = () => {
         <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
           <QuickActionButton onClick={() => navigate('/members')}>👥 Members</QuickActionButton>
           <QuickActionButton onClick={() => navigate('/pastoral-care')}>🙏 Pastoral care</QuickActionButton>
+          <QuickActionButton onClick={() => navigate('/prayer-line')}>📞 Prayer line</QuickActionButton>
+          <QuickActionButton onClick={() => navigate('/partners')}>🤝 Partners</QuickActionButton>
           <QuickActionButton onClick={() => navigate('/communications')}>📧 Message flock</QuickActionButton>
           <QuickActionButton onClick={() => navigate('/events')}>📅 Services & events</QuickActionButton>
           <QuickActionButton onClick={() => navigate('/attendance')}>✅ Attendance</QuickActionButton>
-          <QuickActionButton onClick={() => navigate('/reports')}>📊 Pastoral reports</QuickActionButton>
+          <QuickActionButton onClick={() => navigate('/reporting-dashboard')}>📉 Reporting</QuickActionButton>
         </div>
       </DashboardSection>
 

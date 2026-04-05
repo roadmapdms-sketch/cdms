@@ -24,6 +24,21 @@ const MODULES = [
     icon: '🙏',
   },
   {
+    title: 'Prayer line',
+    desc: 'Scheduled prayer coverage and call-in coordination',
+    icon: '📞',
+  },
+  {
+    title: 'Ministry partners',
+    desc: 'Covenant partners, organizations, and strategic relationships',
+    icon: '🤝',
+  },
+  {
+    title: 'Builders',
+    desc: 'Capital campaigns, pledge phases, and builder cohorts',
+    icon: '🏗️',
+  },
+  {
     title: 'Inventory Management',
     desc: 'Asset tracking and maintenance',
     icon: '📦',
@@ -39,14 +54,34 @@ const MODULES = [
     icon: '🏢',
   },
   {
-    title: 'Budget Planning',
-    desc: 'Department budgeting and financial forecasting',
-    icon: '📈',
+    title: 'Budget planning',
+    desc: 'Annual planning workflow before the live budget module',
+    icon: '📐',
   },
   {
-    title: 'Reporting Dashboard',
-    desc: 'Real-time analytics and custom reports',
-    icon: '📊',
+    title: 'Live budget',
+    desc: 'Department budgets, allocations, and spend tracking',
+    icon: '💹',
+  },
+  {
+    title: 'Reporting dashboard',
+    desc: 'Cross-module KPIs plus detailed reports',
+    icon: '📉',
+  },
+  {
+    title: 'Reports library',
+    desc: 'Detailed operational and financial report views',
+    icon: '📋',
+  },
+  {
+    title: 'Hostels',
+    desc: 'Beds, blocks, occupancy, and reservations',
+    icon: '🛏️',
+  },
+  {
+    title: 'Guest house',
+    desc: 'Nightly stays, housekeeping, and guest services',
+    icon: '🏠',
   },
   {
     title: 'Security System',
@@ -56,41 +91,72 @@ const MODULES = [
 ] as const;
 
 const PORTALS: Array<{
+  id: string;
   label: string;
   path: string;
   desc: string;
   highlight?: boolean;
 }> = [
   {
+    id: 'admin',
     label: 'Administrator',
     path: '/login?redirect=/admin',
-    desc: 'Full system oversight, users, and all modules',
+    desc: 'Full system oversight, users, and every module in the operations console.',
     highlight: true,
   },
   {
+    id: 'finance',
     label: 'Finance & accounting',
     path: '/login?redirect=/accountant',
-    desc: 'Budget, expenses, vendors, and giving',
+    desc: 'Live budget, expenses, vendors, giving, budget planning workflow, and builders (pledges).',
   },
   {
+    id: 'pastor',
     label: 'Pastoral leadership',
     path: '/login?redirect=/pastor',
-    desc: 'Care, prayer, and member engagement',
+    desc: 'Pastoral care, members, prayer line coverage, partners, and communications.',
   },
   {
+    id: 'volunteer',
     label: 'Volunteer coordination',
     path: '/login?redirect=/volunteer',
-    desc: 'Teams, rosters, and serving opportunities',
+    desc: 'Teams, rosters, events, and serving opportunities.',
   },
   {
+    id: 'partners-prayer',
+    label: 'Partners & prayer line',
+    path: '/login?redirect=/dashboard',
+    desc: 'Sign in as staff to open Partners and Prayer line in the sidebar (role must include operations access).',
+  },
+  {
+    id: 'reporting',
+    label: 'Reporting dashboard',
+    path: '/login?redirect=/dashboard',
+    desc: 'Cross-module KPIs plus the reports library—after sign-in use Reporting dashboard and Reports.',
+  },
+  {
+    id: 'hospitality',
+    label: 'Hostels & guest house',
+    path: '/login?redirect=/dashboard',
+    desc: 'Reservations, occupancy, and housekeeping for hostels and guest-house stays in the staff console.',
+  },
+  {
+    id: 'builders',
+    label: 'Builders (campaigns)',
+    path: '/login?redirect=/dashboard',
+    desc: 'Capital campaigns and builder cohorts from the staff operations console.',
+  },
+  {
+    id: 'member',
     label: 'Member portal',
     path: '/login?redirect=/user',
-    desc: 'Personal schedule, giving, and updates',
+    desc: 'Personal schedule, giving, and updates.',
   },
   {
+    id: 'staff',
     label: 'Staff operations',
     path: '/login?redirect=/dashboard',
-    desc: 'Main console: events, communications, reports, and more',
+    desc: 'Full sidebar: events, inventory, volunteers, communications, and all modules your role allows.',
   },
 ];
 
@@ -112,36 +178,55 @@ const LandingPage: React.FC = () => {
         />
 
         <div className="relative z-10 mx-auto flex min-h-[88vh] max-w-6xl flex-col justify-center px-4 pb-16 pt-24 sm:px-6 lg:px-8">
-          <p className="text-center text-[0.7rem] uppercase tracking-[0.35em] text-[#c9a227]/90 sm:text-xs">
+          <p className="text-center text-[0.65rem] font-medium uppercase tracking-[0.42em] text-[#c9a227] sm:text-[0.7rem]">
             Roadmap Ministry International
           </p>
-          <h1 className="mt-4 text-center text-4xl font-semibold leading-tight text-[#f5e6b8] sm:text-5xl md:text-6xl">
-            Church Data
-            <span className="block bg-gradient-to-r from-[#f4e4a8] via-[#e8c547] to-[#a68516] bg-clip-text text-transparent">
-              Management System
-            </span>
-          </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-center text-base text-zinc-400 sm:text-lg">
-            One secure platform for ministry operations—from the sanctuary schedule to the balance sheet—with
-            role-based portals for every leader and member.
-          </p>
 
-          <div className="mt-10 flex flex-wrap justify-center gap-3">
+          <div className="mx-auto mt-10 w-full max-w-3xl text-center">
+            <h1 className="text-balance">
+              <span className="block text-[clamp(1.65rem,4.2vw,2.75rem)] font-light leading-[1.15] tracking-tight text-[#f5e6b8]">
+                Data{' '}
+                <span className="font-normal text-[#f4e4a8]">Management</span>
+              </span>
+              <span className="mt-1 block bg-gradient-to-r from-[#f4e4a8] via-[#e8c547] to-[#c9a227] bg-clip-text text-[clamp(2rem,5.5vw,3.65rem)] font-semibold leading-[1.1] tracking-tight text-transparent">
+                System
+              </span>
+            </h1>
+            <div className="mt-7 flex items-center justify-center gap-3 sm:mt-8">
+              <span
+                className="h-px w-14 max-w-[18vw] shrink-0 bg-gradient-to-r from-transparent to-[#c9a227]"
+                aria-hidden
+              />
+              <span className="rounded-md border border-[#c9a227]/55 bg-[#c9a227]/10 px-4 py-2 text-xs font-bold tracking-[0.32em] text-[#e8c547] shadow-[0_0_24px_-4px_rgba(201,162,39,0.35)] sm:text-sm">
+                DMS
+              </span>
+              <span
+                className="h-px w-14 max-w-[18vw] shrink-0 bg-gradient-to-l from-transparent to-[#c9a227]"
+                aria-hidden
+              />
+            </div>
+            <p className="mx-auto mt-8 max-w-xl text-pretty text-sm leading-relaxed text-[#f4e4a8]/[0.88] sm:text-base">
+              The official operations platform for ministry leadership—secure role-based portals, financial discipline,
+              and real-time insight across every department.
+            </p>
+          </div>
+
+          <div className="mt-12 flex flex-wrap justify-center gap-3 sm:mt-14">
             <Link
               to="/login?redirect=/admin"
-              className="rounded-lg bg-gradient-to-r from-[#c9a227] to-[#8a6d1a] px-6 py-3 text-sm font-semibold text-black shadow-lg shadow-amber-900/40 transition hover:from-[#e8c547] hover:to-[#c9a227]"
+              className="rounded-lg bg-gradient-to-r from-[#e8c547] to-[#c9a227] px-7 py-3 text-sm font-semibold text-black shadow-lg shadow-[rgba(201,162,39,0.25)] transition hover:from-[#f4e4a8] hover:to-[#e8c547]"
             >
               Admin sign-in
             </Link>
             <Link
               to="/register"
-              className="rounded-lg border border-[#c9a227]/50 px-6 py-3 text-sm font-medium text-[#f4e4a8] transition hover:bg-[#c9a227]/10"
+              className="rounded-lg border border-[#c9a227]/55 px-7 py-3 text-sm font-medium text-[#f5e6b8] transition hover:border-[#e8c547] hover:bg-[#c9a227]/10"
             >
               Register
             </Link>
             <Link
               to="/login"
-              className="rounded-lg border border-zinc-700 px-6 py-3 text-sm font-medium text-zinc-300 transition hover:border-[#c9a227]/40 hover:text-[#c9a227]"
+              className="rounded-lg border border-zinc-700/90 px-7 py-3 text-sm font-medium text-[#f4e4a8]/80 transition hover:border-[#c9a227]/50 hover:text-[#f5e6b8]"
             >
               General sign-in
             </Link>
@@ -151,27 +236,28 @@ const LandingPage: React.FC = () => {
 
       <section className="border-t border-[#c9a227]/15 bg-[#070707] px-4 py-16 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-6xl">
-          <h2 className="text-center text-sm font-semibold uppercase tracking-[0.25em] text-[#c9a227]/80">
+          <h2 className="text-center text-sm font-semibold uppercase tracking-[0.25em] text-[#e8c547]">
             Ministry portals
           </h2>
-          <p className="mx-auto mt-3 max-w-2xl text-center text-zinc-500">
-            Choose your workspace. After you sign in, you are routed to the correct dashboard for your role. The
-            administrator portal has visibility across every module.
+          <p className="mx-auto mt-3 max-w-2xl text-center text-[#f4e4a8]/70">
+            Choose a portal to sign in. Role-based entries (admin, finance, pastor, etc.) open your home dashboard.
+            Module-focused cards use the staff console—after sign-in, open the matching item in the sidebar (your account
+            must have access).
           </p>
           <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {PORTALS.map((p) => (
               <Link
-                key={p.label}
+                key={p.id}
                 to={p.path}
                 className={`group flex flex-col rounded-2xl border p-5 transition ${
                   p.highlight
-                    ? 'border-[#c9a227]/50 bg-gradient-to-br from-[#c9a227]/15 to-zinc-900/80 shadow-lg shadow-amber-950/30'
-                    : 'border-zinc-800 bg-zinc-900/40 hover:border-[#c9a227]/35'
+                    ? 'border-[#c9a227]/55 bg-gradient-to-br from-[#c9a227]/18 to-zinc-950/90 shadow-lg shadow-[0_0_40px_-12px_rgba(201,162,39,0.45)]'
+                    : 'border-zinc-800/90 bg-zinc-950/50 hover:border-[#c9a227]/40'
                 }`}
               >
                 <span className="text-xs font-semibold uppercase tracking-wider text-[#c9a227]">Portal</span>
-                <span className="mt-1 text-lg font-semibold text-[#f5e6b8] group-hover:text-white">{p.label}</span>
-                <span className="mt-2 text-sm text-zinc-500">{p.desc}</span>
+                <span className="mt-1 text-lg font-semibold text-[#f5e6b8] group-hover:text-[#f4e4a8]">{p.label}</span>
+                <span className="mt-2 text-sm leading-snug text-[#f4e4a8]/65">{p.desc}</span>
                 <span className="mt-4 text-sm font-medium text-[#e8c547]">Sign in →</span>
               </Link>
             ))}
@@ -181,22 +267,22 @@ const LandingPage: React.FC = () => {
 
       <section className="border-t border-zinc-800 bg-black px-4 py-16 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-6xl">
-          <h2 className="text-center text-sm font-semibold uppercase tracking-[0.25em] text-[#c9a227]/80">
+          <h2 className="text-center text-sm font-semibold uppercase tracking-[0.25em] text-[#e8c547]">
             Platform capabilities
           </h2>
           <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {MODULES.map((m) => (
               <div
                 key={m.title}
-                className="rounded-xl border border-zinc-800/90 bg-zinc-950/50 p-5 transition hover:border-[#c9a227]/25"
+                className="rounded-xl border border-zinc-800/90 bg-zinc-950/50 p-5 transition hover:border-[#c9a227]/35"
               >
                 <div className="flex items-start gap-3">
                   <span className="text-2xl" aria-hidden>
                     {m.icon}
                   </span>
                   <div>
-                    <h3 className="font-semibold text-[#f0e6c8]">{m.title}</h3>
-                    <p className="mt-1 text-sm leading-relaxed text-zinc-500">{m.desc}</p>
+                    <h3 className="font-semibold text-[#f5e6b8]">{m.title}</h3>
+                    <p className="mt-1 text-sm leading-relaxed text-[#f4e4a8]/65">{m.desc}</p>
                   </div>
                 </div>
               </div>
@@ -205,8 +291,11 @@ const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      <footer className="border-t border-zinc-900 px-4 py-8 text-center text-xs text-zinc-600 sm:px-6">
-        Roadmap Ministry International · Church Data Management System
+      <footer className="border-t border-zinc-900 px-4 py-8 text-center text-xs text-[#f4e4a8]/45 sm:px-6">
+        <span className="text-[#c9a227]/80">Roadmap Ministry International</span>
+        <span className="text-[#f4e4a8]/50"> · </span>
+        <span className="text-[#f5e6b8]/70">Data Management System</span>
+        <span className="text-[#e8c547]/80"> DMS</span>
       </footer>
     </div>
   );

@@ -81,7 +81,7 @@ const Register: React.FC = () => {
             Create Your Account
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            Register for the Church Data Management System
+            Register for Data Management System (DMS)
           </p>
         </div>
         

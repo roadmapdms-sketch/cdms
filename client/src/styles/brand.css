@@ -1,6 +1,12 @@
-/* Church Data Management System - Brand Colors */
+/* Roadmap Ministry International — DMS brand (legacy utility classes below). */
 
 :root {
+  /* RMI gold palette (primary digital brand) */
+  --rmi-gold-primary: #c9a227;
+  --rmi-gold-light: #e8c547;
+  --rmi-gold-warm: #f4e4a8;
+  --rmi-cream: #f5e6b8;
+
   /* Primary Brand Colors */
   --brand-mustard: #e7b123;
   --brand-mustard-hover: #d4a01f;

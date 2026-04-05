@@ -46,7 +46,7 @@ export function RoleDashboardLayout({
 }: {
   title: string;
   roleBadge: string;
-  /** Link to main CDMS shell (sidebar modules). */
+  /** Link to main DMS operations console (sidebar modules). */
   showOperationsConsole?: boolean;
   children: React.ReactNode;
 }) {

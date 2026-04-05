@@ -1,4 +1,4 @@
-/** Roles allowed to use the main CDMS shell (sidebar + module pages). */
+/** Roles allowed to use the main DMS operations shell (sidebar + module pages). */
 export const LAYOUT_ALLOWED_ROLES = [
   'ADMIN',
   'ACCOUNTANT',
@@ -29,17 +29,24 @@ export interface SidebarNavItem {
 const ALL_SIDEBAR_ITEMS: SidebarNavItem[] = [
   { name: 'Dashboard', href: '/dashboard', icon: '📊' },
   { name: 'Members', href: '/members', icon: '👥' },
+  { name: 'Partners', href: '/partners', icon: '🤝' },
   { name: 'Attendance', href: '/attendance', icon: '✅' },
   { name: 'Financial', href: '/financial', icon: '💰', financeOnly: true },
   { name: 'Events', href: '/events', icon: '📅' },
   { name: 'Communications', href: '/communications', icon: '📧' },
-  { name: 'Volunteers', href: '/volunteers', icon: '🤝' },
+  { name: 'Volunteers', href: '/volunteers', icon: '🙌' },
   { name: 'Pastoral Care', href: '/pastoral-care', icon: '🙏' },
+  { name: 'Prayer line', href: '/prayer-line', icon: '📞' },
   { name: 'Inventory', href: '/inventory', icon: '📦' },
   { name: 'Expenses', href: '/expenses', icon: '🧾', financeOnly: true },
   { name: 'Vendors', href: '/vendors', icon: '🏢', financeOnly: true },
-  { name: 'Budget', href: '/budget', icon: '📈', financeOnly: true },
+  { name: 'Budget', href: '/budget', icon: '💹', financeOnly: true },
+  { name: 'Budget planning', href: '/budget-planning', icon: '📐', financeOnly: true },
+  { name: 'Builders', href: '/builders', icon: '🏗️' },
+  { name: 'Hostels', href: '/hostels', icon: '🛏️' },
+  { name: 'Guest house', href: '/guest-house', icon: '🏠' },
   { name: 'Reports', href: '/reports', icon: '📋' },
+  { name: 'Reporting dashboard', href: '/reporting-dashboard', icon: '📉' },
 ];
 
 export function sidebarItemsForRole(role: string | undefined): SidebarNavItem[] {

@@ -90,7 +90,7 @@ const Dashboard: React.FC = () => {
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-2xl font-bold text-[#7a0f1a]">Dashboard</h1>
-            <p className="text-gray-600">Welcome to Church Data Management System</p>
+            <p className="text-gray-600">Welcome to Data Management System (DMS)</p>
           </div>
           <select
             className="input"

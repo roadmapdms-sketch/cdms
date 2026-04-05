@@ -117,10 +117,10 @@ const Login: React.FC = () => {
             to="/"
             className="mx-auto flex justify-center text-xs uppercase tracking-[0.2em] text-[#c9a227]/80 hover:text-[#e8c547]"
           >
-            ← Roadmap Ministry · CDMS
+            ← Roadmap Ministry · DMS
           </Link>
           <h2 className="mt-6 text-center text-3xl font-semibold text-[#f5e6b8]">Sign in</h2>
-          <p className="mt-2 text-center text-sm text-zinc-500">Church Data Management System</p>
+          <p className="mt-2 text-center text-sm text-zinc-500">Data Management System</p>
           {portalHint ? (
             <p className="mt-3 rounded-lg border border-[#c9a227]/30 bg-[#c9a227]/10 px-3 py-2 text-center text-sm text-[#e8c547]">
               {portalHint}
@@ -179,7 +179,7 @@ const Login: React.FC = () => {
           <button
             type="submit"
             disabled={loading}
-            className="relative flex w-full justify-center rounded-lg bg-gradient-to-r from-[#c9a227] to-[#8a6d1a] py-2.5 text-sm font-semibold text-black shadow-lg shadow-amber-950/40 hover:from-[#e8c547] hover:to-[#c9a227] disabled:cursor-not-allowed disabled:opacity-50"
+            className="relative flex w-full justify-center rounded-lg bg-gradient-to-r from-[#e8c547] to-[#c9a227] py-2.5 text-sm font-semibold text-black shadow-lg shadow-[rgba(201,162,39,0.25)] hover:from-[#f4e4a8] hover:to-[#e8c547] disabled:cursor-not-allowed disabled:opacity-50"
           >
             {loading ? 'Signing in…' : 'Sign in'}
           </button>

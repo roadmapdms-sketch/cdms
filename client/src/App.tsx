@@ -17,7 +17,14 @@ import Inventory from './pages/Inventory';
 import Expenses from './pages/Expenses';
 import Vendors from './pages/Vendors';
 import Budget from './pages/Budget';
+import BudgetPlanning from './pages/BudgetPlanning';
 import Reports from './pages/Reports';
+import ReportingDashboard from './pages/ReportingDashboard';
+import Partners from './pages/Partners';
+import PrayersLine from './pages/PrayersLine';
+import Builders from './pages/Builders';
+import Hostels from './pages/Hostels';
+import GuestHouse from './pages/GuestHouse';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AccountantDashboard from './pages/accountant/AccountantDashboard';
 import PastorDashboard from './pages/pastor/PastorDashboard';
@@ -145,7 +152,21 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/budget-planning"
+              element={
+                <ProtectedRoute allowedRoles={[...FINANCE_ALLOWED_ROLES]}>
+                  <BudgetPlanning />
+                </ProtectedRoute>
+              }
+            />
             <Route path="/reports" element={<Reports />} />
+            <Route path="/reporting-dashboard" element={<ReportingDashboard />} />
+            <Route path="/partners" element={<Partners />} />
+            <Route path="/prayer-line" element={<PrayersLine />} />
+            <Route path="/builders" element={<Builders />} />
+            <Route path="/hostels" element={<Hostels />} />
+            <Route path="/guest-house" element={<GuestHouse />} />
           </Route>
 
           <Route path="*" element={<CatchAllRedirect />} />

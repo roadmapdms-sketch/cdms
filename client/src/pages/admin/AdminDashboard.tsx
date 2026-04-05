@@ -80,7 +80,8 @@ const AdminDashboard: React.FC = () => {
 
       <DashboardSection title="Direct module access">
         <p className="mb-4 max-w-3xl text-sm text-zinc-500">
-          Open the live modules in the operations console—members, finance, events, communications, and reports.
+          Open live modules in the operations console—core tools plus partners, prayer line, hospitality, builders, and
+          reporting hubs.
         </p>
         <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
           <QuickActionButton onClick={() => navigate('/members')}>
@@ -95,12 +96,34 @@ const AdminDashboard: React.FC = () => {
           <QuickActionButton onClick={() => navigate('/communications')}>
             📧 Communications
           </QuickActionButton>
-          <QuickActionButton onClick={() => navigate('/reports')}>
-            📊 Reports & analytics
+          <QuickActionButton onClick={() => navigate('/reporting-dashboard')}>
+            📉 Reporting dashboard
           </QuickActionButton>
           <QuickActionButton onClick={() => navigate('/dashboard')}>
             🎛️ Operations home
           </QuickActionButton>
+        </div>
+      </DashboardSection>
+
+      <DashboardSection title="Partners, prayer & hospitality">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
+          <QuickActionButton onClick={() => navigate('/partners')}>🤝 Partners</QuickActionButton>
+          <QuickActionButton onClick={() => navigate('/prayer-line')}>📞 Prayer line</QuickActionButton>
+          <QuickActionButton onClick={() => navigate('/pastoral-care')}>🙏 Pastoral care</QuickActionButton>
+          <QuickActionButton onClick={() => navigate('/builders')}>🏗️ Builders</QuickActionButton>
+          <QuickActionButton onClick={() => navigate('/hostels')}>🛏️ Hostels</QuickActionButton>
+          <QuickActionButton onClick={() => navigate('/guest-house')}>🏠 Guest house</QuickActionButton>
+        </div>
+      </DashboardSection>
+
+      <DashboardSection title="Finance & planning">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
+          <QuickActionButton onClick={() => navigate('/budget')}>💹 Live budget</QuickActionButton>
+          <QuickActionButton onClick={() => navigate('/budget-planning')}>📐 Budget planning</QuickActionButton>
+          <QuickActionButton onClick={() => navigate('/expenses')}>🧾 Expenses</QuickActionButton>
+          <QuickActionButton onClick={() => navigate('/vendors')}>🏢 Vendors</QuickActionButton>
+          <QuickActionButton onClick={() => navigate('/reports')}>📋 Reports library</QuickActionButton>
+          <QuickActionButton onClick={() => navigate('/inventory')}>📦 Inventory</QuickActionButton>
         </div>
       </DashboardSection>
 
@@ -135,31 +158,31 @@ const AdminDashboard: React.FC = () => {
       <div className="mt-8 flex flex-wrap gap-3">
         <button
           type="button"
-          onClick={() => navigate('/budget')}
+          onClick={() => navigate('/volunteers')}
           className="rounded-lg border border-[#c9a227]/35 px-4 py-2 text-sm text-[#f4e4a8] hover:bg-[#c9a227]/10"
         >
-          Budget
+          Volunteers
         </button>
         <button
           type="button"
-          onClick={() => navigate('/expenses')}
+          onClick={() => navigate('/attendance')}
           className="rounded-lg border border-[#c9a227]/35 px-4 py-2 text-sm text-[#f4e4a8] hover:bg-[#c9a227]/10"
         >
-          Expenses
+          Attendance
         </button>
         <button
           type="button"
-          onClick={() => navigate('/inventory')}
+          onClick={() => navigate('/partners')}
           className="rounded-lg border border-[#c9a227]/35 px-4 py-2 text-sm text-[#f4e4a8] hover:bg-[#c9a227]/10"
         >
-          Inventory
+          Partners
         </button>
         <button
           type="button"
-          onClick={() => navigate('/pastoral-care')}
+          onClick={() => navigate('/hostels')}
           className="rounded-lg border border-[#c9a227]/35 px-4 py-2 text-sm text-[#f4e4a8] hover:bg-[#c9a227]/10"
         >
-          Pastoral care
+          Hostels
         </button>
       </div>
     </RoleDashboardLayout>

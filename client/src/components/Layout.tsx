@@ -83,7 +83,7 @@ const Layout: React.FC = () => {
             />
             <div className="text-center">
               <span className="text-[0.65rem] uppercase tracking-[0.2em] text-[#c9a227]/80">RMI</span>
-              <span className="block text-lg font-semibold text-[#f5e6b8]">CDMS</span>
+              <span className="block text-lg font-semibold text-[#f5e6b8]">DMS</span>
             </div>
             <button
               type="button"
@@ -141,7 +141,7 @@ const Layout: React.FC = () => {
             <span className="mt-3 block text-center text-[0.65rem] uppercase tracking-[0.25em] text-[#c9a227]/80">
               Roadmap Ministry
             </span>
-            <span className="mt-1 block text-center text-xl font-semibold text-[#f5e6b8]">CDMS</span>
+            <span className="mt-1 block text-center text-xl font-semibold text-[#f5e6b8]">DMS</span>
             <p className="mt-1 text-center text-xs text-zinc-600">Operations console</p>
           </div>
           <nav className="mt-8 flex-1 space-y-1 px-2">

@@ -2,7 +2,7 @@ const raw = process.env.REACT_APP_API_URL?.trim().replace(/\/$/, '');
 
 /**
  * REST API base (must end with `/api`).
- * - Explicit `REACT_APP_API_URL` always wins (required for full CDMS when API is on another host).
+ * - Explicit `REACT_APP_API_URL` always wins (required when the API is on another host).
  * - Production build without env: same-origin `/api` (Vercel rewrites to `api/index.js` — auth only).
  * - Development (`npm start`): default Express on :5001 — do NOT use window.origin (CRA is on :3000).
  */
