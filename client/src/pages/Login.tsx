@@ -17,6 +17,9 @@ const REDIRECT_HINTS: Record<string, string> = {
   '/volunteer': 'Volunteer coordination',
   '/user': 'Member portal',
   '/dashboard': 'Staff operations console',
+  '/media': 'Media department',
+  '/kitchen': 'Kitchen & restaurant',
+  '/management': 'Management',
 };
 
 const Login: React.FC = () => {
@@ -61,6 +64,15 @@ const Login: React.FC = () => {
         break;
       case 'VOLUNTEER_COORDINATOR':
         navigate('/volunteer', { replace: true });
+        break;
+      case 'MEDIA_DEPARTMENT':
+        navigate('/media', { replace: true });
+        break;
+      case 'KITCHEN_RESTAURANT':
+        navigate('/kitchen', { replace: true });
+        break;
+      case 'MANAGEMENT':
+        navigate('/management', { replace: true });
         break;
       case 'MEMBER':
         navigate('/user', { replace: true });

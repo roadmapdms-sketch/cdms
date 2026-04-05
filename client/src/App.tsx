@@ -30,6 +30,9 @@ import AccountantDashboard from './pages/accountant/AccountantDashboard';
 import PastorDashboard from './pages/pastor/PastorDashboard';
 import VolunteerDashboard from './pages/volunteer/VolunteerDashboard';
 import MemberDashboard from './pages/member/MemberDashboard';
+import MediaDepartmentDashboard from './pages/media/MediaDepartmentDashboard';
+import KitchenRestaurantDashboard from './pages/kitchen/KitchenRestaurantDashboard';
+import ManagementDashboard from './pages/management/ManagementDashboard';
 import { LAYOUT_ALLOWED_ROLES, getDefaultHomePath, FINANCE_ALLOWED_ROLES } from './utils/roles';
 
 function CatchAllRedirect() {
@@ -104,6 +107,36 @@ function App() {
             }
           />
           <Route path="/member/dashboard" element={<Navigate to="/user" replace />} />
+
+          <Route
+            path="/media"
+            element={
+              <ProtectedRoute allowedRoles={['MEDIA_DEPARTMENT', 'ADMIN']}>
+                <MediaDepartmentDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/media/dashboard" element={<Navigate to="/media" replace />} />
+
+          <Route
+            path="/kitchen"
+            element={
+              <ProtectedRoute allowedRoles={['KITCHEN_RESTAURANT', 'ADMIN']}>
+                <KitchenRestaurantDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/kitchen/dashboard" element={<Navigate to="/kitchen" replace />} />
+
+          <Route
+            path="/management"
+            element={
+              <ProtectedRoute allowedRoles={['MANAGEMENT', 'ADMIN']}>
+                <ManagementDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/management/dashboard" element={<Navigate to="/management" replace />} />
 
           <Route
             element={

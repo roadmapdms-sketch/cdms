@@ -13,6 +13,9 @@ exports.STAFF_MODULE_ROLES = [
     'STAFF',
     'VOLUNTEER',
     'USER',
+    'MEDIA_DEPARTMENT',
+    'KITCHEN_RESTAURANT',
+    'MANAGEMENT',
 ];
 /** Giving, budgets, vendors, expenses — finance team + admin only. */
 exports.FINANCE_CORE_ROLES = ['ADMIN', 'ACCOUNTANT'];

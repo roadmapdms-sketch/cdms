@@ -11,6 +11,9 @@ export const STAFF_MODULE_ROLES: string[] = [
   'STAFF',
   'VOLUNTEER',
   'USER',
+  'MEDIA_DEPARTMENT',
+  'KITCHEN_RESTAURANT',
+  'MANAGEMENT',
 ];
 
 /** Giving, budgets, vendors, expenses — finance team + admin only. */

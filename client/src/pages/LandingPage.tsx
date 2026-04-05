@@ -123,6 +123,24 @@ const PORTALS: Array<{
     desc: 'Teams, rosters, events, and serving opportunities.',
   },
   {
+    id: 'media',
+    label: 'Media department',
+    path: '/login?redirect=/media',
+    desc: 'Production, communications, events, and AV inventory—sign in with a media department account.',
+  },
+  {
+    id: 'kitchen',
+    label: 'Kitchen & restaurant',
+    path: '/login?redirect=/kitchen',
+    desc: 'Hospitality operations: events, inventory, volunteers, and guest facilities.',
+  },
+  {
+    id: 'management',
+    label: 'Management',
+    path: '/login?redirect=/management',
+    desc: 'Leadership snapshot: reporting, members, events, and partners (finance detail stays in finance roles).',
+  },
+  {
     id: 'partners-prayer',
     label: 'Partners & prayer line',
     path: '/login?redirect=/dashboard',

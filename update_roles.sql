@@ -13,7 +13,7 @@ ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check;
 -- Add the new role constraint with all required roles
 ALTER TABLE users 
 ADD CONSTRAINT users_role_check 
-CHECK (role IN ('ADMIN', 'ACCOUNTANT', 'PASTOR', 'VOLUNTEER_COORDINATOR', 'MEMBER', 'VOLUNTEER', 'STAFF', 'USER'));
+CHECK (role IN ('ADMIN', 'ACCOUNTANT', 'PASTOR', 'VOLUNTEER_COORDINATOR', 'MEMBER', 'VOLUNTEER', 'STAFF', 'USER', 'MEDIA_DEPARTMENT', 'KITCHEN_RESTAURANT', 'MANAGEMENT'));
 
 -- Create role permissions table for fine-grained access control
 CREATE TABLE IF NOT EXISTS role_permissions (

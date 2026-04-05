@@ -8,6 +8,9 @@ export const ALLOWED_POST_LOGIN_PATHS = [
   '/volunteer',
   '/user',
   '/dashboard',
+  '/media',
+  '/kitchen',
+  '/management',
 ] as const;
 
 export type AllowedPostLoginPath = (typeof ALLOWED_POST_LOGIN_PATHS)[number];
@@ -34,6 +37,12 @@ export function canAccessPortalPath(path: AllowedPostLoginPath, role: string): b
       return role === 'MEMBER';
     case '/dashboard':
       return (LAYOUT_ALLOWED_ROLES as readonly string[]).includes(role);
+    case '/media':
+      return role === 'MEDIA_DEPARTMENT' || role === 'ADMIN';
+    case '/kitchen':
+      return role === 'KITCHEN_RESTAURANT' || role === 'ADMIN';
+    case '/management':
+      return role === 'MANAGEMENT' || role === 'ADMIN';
     default:
       return false;
   }

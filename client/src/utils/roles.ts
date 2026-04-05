@@ -7,6 +7,9 @@ export const LAYOUT_ALLOWED_ROLES = [
   'STAFF',
   'VOLUNTEER',
   'USER',
+  'MEDIA_DEPARTMENT',
+  'KITCHEN_RESTAURANT',
+  'MANAGEMENT',
 ] as const;
 
 /** Matches server `FINANCE_CORE_ROLES` — financial, budget, vendors, expenses APIs. */
@@ -66,6 +69,12 @@ export function getDefaultHomePath(role: string | undefined): string {
       return '/volunteer';
     case 'MEMBER':
       return '/user';
+    case 'MEDIA_DEPARTMENT':
+      return '/media';
+    case 'KITCHEN_RESTAURANT':
+      return '/kitchen';
+    case 'MANAGEMENT':
+      return '/management';
     default:
       return '/dashboard';
   }
