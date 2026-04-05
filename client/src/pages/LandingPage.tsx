@@ -163,17 +163,23 @@ const PORTALS: Array<{
 const LandingPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-black text-zinc-100">
-      <section className="relative min-h-[88vh] overflow-hidden">
-        {/* Full-bleed watermark: wide logo reads best from the top */}
+      <section className="relative min-h-[88vh] overflow-hidden bg-black">
+        {/* Base + RMI mark: logo must sit above flat black but below soft vignettes so it actually shows on the public hero */}
         <div
-          className="absolute inset-0 bg-[length:min(120vw,920px)] bg-[position:50%_0%] bg-no-repeat opacity-[0.38] sm:bg-[length:min(100vw,820px)]"
+          className="pointer-events-none absolute inset-0 z-[1] bg-[length:min(125vw,960px)] bg-[position:50%_6%] bg-no-repeat opacity-[0.32] sm:bg-[length:min(108vw,900px)] sm:opacity-[0.38]"
           style={{ backgroundImage: `url(${RMI_HERO_LOGO_URL})` }}
           aria-hidden
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black via-black/88 to-[#070707]" />
-        <div className="absolute inset-0 bg-gradient-to-r from-black via-black/20 to-black opacity-90" />
         <div
-          className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_20%,transparent_0%,#000_75%)] opacity-95"
+          className="pointer-events-none absolute inset-0 z-[2] bg-gradient-to-b from-black/82 via-black/45 to-black/88"
+          aria-hidden
+        />
+        <div
+          className="pointer-events-none absolute inset-0 z-[2] bg-gradient-to-r from-black/50 via-transparent to-black/50"
+          aria-hidden
+        />
+        <div
+          className="pointer-events-none absolute inset-0 z-[2] bg-[radial-gradient(ellipse_70%_58%_at_50%_26%,rgba(0,0,0,0.42)_0%,transparent_65%)]"
           aria-hidden
         />
 
