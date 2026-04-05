@@ -16,6 +16,9 @@ exports.STAFF_MODULE_ROLES = [
     'MEDIA_DEPARTMENT',
     'KITCHEN_RESTAURANT',
     'MANAGEMENT',
+    'USHER_MANAGEMENT',
+    'PARTNERS_COORDINATOR',
+    'PRAYER_LINE_COORDINATOR',
 ];
 /** Giving, budgets, vendors, expenses — finance team + admin only. */
 exports.FINANCE_CORE_ROLES = ['ADMIN', 'ACCOUNTANT'];

@@ -11,6 +11,9 @@ export const ALLOWED_POST_LOGIN_PATHS = [
   '/media',
   '/kitchen',
   '/management',
+  '/ushers',
+  '/ministry-partners',
+  '/prayer-line-portal',
 ] as const;
 
 export type AllowedPostLoginPath = (typeof ALLOWED_POST_LOGIN_PATHS)[number];
@@ -43,6 +46,12 @@ export function canAccessPortalPath(path: AllowedPostLoginPath, role: string): b
       return role === 'KITCHEN_RESTAURANT' || role === 'ADMIN';
     case '/management':
       return role === 'MANAGEMENT' || role === 'ADMIN';
+    case '/ushers':
+      return role === 'USHER_MANAGEMENT' || role === 'ADMIN';
+    case '/ministry-partners':
+      return role === 'PARTNERS_COORDINATOR' || role === 'ADMIN';
+    case '/prayer-line-portal':
+      return role === 'PRAYER_LINE_COORDINATOR' || role === 'ADMIN';
     default:
       return false;
   }

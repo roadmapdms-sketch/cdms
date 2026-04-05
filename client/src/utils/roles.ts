@@ -10,6 +10,9 @@ export const LAYOUT_ALLOWED_ROLES = [
   'MEDIA_DEPARTMENT',
   'KITCHEN_RESTAURANT',
   'MANAGEMENT',
+  'USHER_MANAGEMENT',
+  'PARTNERS_COORDINATOR',
+  'PRAYER_LINE_COORDINATOR',
 ] as const;
 
 /** Matches server `FINANCE_CORE_ROLES` — financial, budget, vendors, expenses APIs. */
@@ -75,6 +78,12 @@ export function getDefaultHomePath(role: string | undefined): string {
       return '/kitchen';
     case 'MANAGEMENT':
       return '/management';
+    case 'USHER_MANAGEMENT':
+      return '/ushers';
+    case 'PARTNERS_COORDINATOR':
+      return '/ministry-partners';
+    case 'PRAYER_LINE_COORDINATOR':
+      return '/prayer-line-portal';
     default:
       return '/dashboard';
   }

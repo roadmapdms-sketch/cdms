@@ -20,6 +20,9 @@ const REDIRECT_HINTS: Record<string, string> = {
   '/media': 'Media department',
   '/kitchen': 'Kitchen & restaurant',
   '/management': 'Management',
+  '/ushers': 'Usher management',
+  '/ministry-partners': 'Ministry partners',
+  '/prayer-line-portal': 'Prayer line',
 };
 
 const Login: React.FC = () => {
@@ -73,6 +76,15 @@ const Login: React.FC = () => {
         break;
       case 'MANAGEMENT':
         navigate('/management', { replace: true });
+        break;
+      case 'USHER_MANAGEMENT':
+        navigate('/ushers', { replace: true });
+        break;
+      case 'PARTNERS_COORDINATOR':
+        navigate('/ministry-partners', { replace: true });
+        break;
+      case 'PRAYER_LINE_COORDINATOR':
+        navigate('/prayer-line-portal', { replace: true });
         break;
       case 'MEMBER':
         navigate('/user', { replace: true });

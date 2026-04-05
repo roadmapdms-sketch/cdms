@@ -33,6 +33,9 @@ import MemberDashboard from './pages/member/MemberDashboard';
 import MediaDepartmentDashboard from './pages/media/MediaDepartmentDashboard';
 import KitchenRestaurantDashboard from './pages/kitchen/KitchenRestaurantDashboard';
 import ManagementDashboard from './pages/management/ManagementDashboard';
+import UsherManagementDashboard from './pages/usher/UsherManagementDashboard';
+import PartnersPortalDashboard from './pages/partners/PartnersPortalDashboard';
+import PrayerLinePortalDashboard from './pages/prayerline/PrayerLinePortalDashboard';
 import { LAYOUT_ALLOWED_ROLES, getDefaultHomePath, FINANCE_ALLOWED_ROLES } from './utils/roles';
 
 function CatchAllRedirect() {
@@ -137,6 +140,36 @@ function App() {
             }
           />
           <Route path="/management/dashboard" element={<Navigate to="/management" replace />} />
+
+          <Route
+            path="/ushers"
+            element={
+              <ProtectedRoute allowedRoles={['USHER_MANAGEMENT', 'ADMIN']}>
+                <UsherManagementDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/ushers/dashboard" element={<Navigate to="/ushers" replace />} />
+
+          <Route
+            path="/ministry-partners"
+            element={
+              <ProtectedRoute allowedRoles={['PARTNERS_COORDINATOR', 'ADMIN']}>
+                <PartnersPortalDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/ministry-partners/dashboard" element={<Navigate to="/ministry-partners" replace />} />
+
+          <Route
+            path="/prayer-line-portal"
+            element={
+              <ProtectedRoute allowedRoles={['PRAYER_LINE_COORDINATOR', 'ADMIN']}>
+                <PrayerLinePortalDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/prayer-line-portal/dashboard" element={<Navigate to="/prayer-line-portal" replace />} />
 
           <Route
             element={

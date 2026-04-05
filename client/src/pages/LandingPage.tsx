@@ -141,10 +141,22 @@ const PORTALS: Array<{
     desc: 'Leadership snapshot: reporting, members, events, and partners (finance detail stays in finance roles).',
   },
   {
-    id: 'partners-prayer',
-    label: 'Partners & prayer line',
-    path: '/login?redirect=/dashboard',
-    desc: 'Sign in as staff to open Partners and Prayer line in the sidebar (role must include operations access).',
+    id: 'ushers',
+    label: 'Usher management',
+    path: '/login?redirect=/ushers',
+    desc: 'Guest experience: attendance, events, usher teams, member lookup, and communications.',
+  },
+  {
+    id: 'ministry-partners',
+    label: 'Ministry partners',
+    path: '/login?redirect=/ministry-partners',
+    desc: 'Dedicated partners portal—directory, renewals, and comms (partners coordinator account).',
+  },
+  {
+    id: 'prayer-line-portal',
+    label: 'Prayer line',
+    path: '/login?redirect=/prayer-line-portal',
+    desc: 'Dedicated prayer line portal—slots, intercessors, and pastoral handoffs (prayer line coordinator account).',
   },
   {
     id: 'reporting',
