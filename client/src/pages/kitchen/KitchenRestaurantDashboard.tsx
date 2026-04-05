@@ -64,7 +64,7 @@ const KitchenRestaurantDashboard: React.FC = () => {
   }
 
   return (
-    <RoleDashboardLayout title="Kitchen & restaurant" roleBadge="Hospitality & food service" showOperationsConsole>
+    <RoleDashboardLayout title="Kitchen & restaurant" roleBadge="Hospitality & food service">
       <DashboardSection title="Service snapshot">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           <StatCard label="Events on file" value={stats.overview.totalEvents} />

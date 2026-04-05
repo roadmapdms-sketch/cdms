@@ -57,7 +57,7 @@ const ManagementDashboard: React.FC = () => {
   }
 
   return (
-    <RoleDashboardLayout title="Management" roleBadge="Leadership overview" showOperationsConsole>
+    <RoleDashboardLayout title="Management" roleBadge="Leadership overview">
       <DashboardSection title="Organizational snapshot">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <StatCard label="Members on file" value={stats.overview.totalMembers} />

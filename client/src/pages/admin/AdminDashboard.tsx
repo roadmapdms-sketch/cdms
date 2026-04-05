@@ -56,11 +56,7 @@ const AdminDashboard: React.FC = () => {
   const growthWidth = Math.min(100, Math.max(0, stats.monthlyGrowth * 5));
 
   return (
-    <RoleDashboardLayout
-      title="Administrator control center"
-      roleBadge="Administrator · full visibility"
-      showOperationsConsole
-    >
+    <RoleDashboardLayout title="Administrator control center" roleBadge="Administrator · full visibility">
       <DashboardSection title="System overview">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           <StatCard

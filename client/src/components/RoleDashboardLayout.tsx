@@ -1,7 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import StaffAppShell, { StaffAppShellUser } from './StaffAppShell';
 import { logout } from '../utils/authSession';
 import { RMI_HERO_LOGO_URL } from '../constants/branding';
+import { getDefaultHomePath, sidebarItemsForRole } from '../utils/roles';
 
 export function StatCard({
   label,
@@ -41,20 +44,59 @@ export function DashboardSection({
 export function RoleDashboardLayout({
   title,
   roleBadge,
-  showOperationsConsole,
+  /** When true (default), show the same full feature sidebar as the operations console. */
+  showStaffSidebar = true,
   children,
 }: {
   title: string;
   roleBadge: string;
-  /** Link to main DMS operations console (sidebar modules). */
-  showOperationsConsole?: boolean;
+  showStaffSidebar?: boolean;
   children: React.ReactNode;
 }) {
   const navigate = useNavigate();
+  const [user, setUser] = useState<StaffAppShellUser | null>(null);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const raw = localStorage.getItem('user');
+    if (token && raw) {
+      try {
+        setUser(JSON.parse(raw));
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      } catch {
+        setUser(null);
+      }
+    }
+  }, []);
+
+  if (showStaffSidebar) {
+    if (!user) {
+      return (
+        <div className="flex min-h-screen items-center justify-center bg-[#070707]">
+          <div className="h-12 w-12 animate-spin rounded-full border-2 border-[#c9a227] border-t-transparent" />
+        </div>
+      );
+    }
+    const navigation = sidebarItemsForRole(user.role);
+    const roleHome = getDefaultHomePath(user.role);
+    return (
+      <StaffAppShell
+        user={user}
+        navigation={navigation}
+        roleHome={roleHome}
+        headerTitle={title}
+        headerSubtitle={roleBadge}
+        showApiHealthBanner
+        mainInnerClassName="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+      >
+        {children}
+      </StaffAppShell>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#070707] text-zinc-100">
       <header className="border-b border-[#c9a227]/25">
-        {/* Upper brand strip — same asset as landing; visible on every role portal (/admin, /pastor, etc.) */}
         <div className="relative overflow-hidden bg-black">
           <div
             className="pointer-events-none absolute inset-0 bg-[length:min(110vw,800px)] bg-[position:50%_0%] bg-no-repeat opacity-[0.2]"
@@ -71,40 +113,32 @@ export function RoleDashboardLayout({
           </div>
         </div>
         <div className="relative overflow-hidden border-t border-[#c9a227]/15 bg-gradient-to-r from-black via-[#14110a] to-black">
-        <div className="relative mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
-          <div>
-            <p className="text-[0.65rem] uppercase tracking-[0.28em] text-[#c9a227]/75 sm:text-xs">
-              Roadmap Ministry International
-            </p>
-            <h1 className="text-xl font-semibold text-[#f5e6b8] sm:text-2xl">{title}</h1>
-            <span className="mt-2 inline-block rounded-full border border-[#c9a227]/35 bg-black/50 px-3 py-0.5 text-xs text-[#e8c547]">
-              {roleBadge}
-            </span>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            {showOperationsConsole ? (
+          <div className="relative mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
+            <div>
+              <p className="text-[0.65rem] uppercase tracking-[0.28em] text-[#c9a227]/75 sm:text-xs">
+                Roadmap Ministry International
+              </p>
+              <h1 className="text-xl font-semibold text-[#f5e6b8] sm:text-2xl">{title}</h1>
+              <span className="mt-2 inline-block rounded-full border border-[#c9a227]/35 bg-black/50 px-3 py-0.5 text-xs text-[#e8c547]">
+                {roleBadge}
+              </span>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
               <Link
-                to="/dashboard"
-                className="rounded-lg border border-[#c9a227]/45 px-3 py-2 text-sm text-[#f4e4a8] transition hover:bg-[#c9a227]/10"
+                to="/"
+                className="rounded-lg px-3 py-2 text-sm text-zinc-400 transition hover:text-[#c9a227]"
               >
-                Operations console
+                Home
               </Link>
-            ) : null}
-            <Link
-              to="/"
-              className="rounded-lg px-3 py-2 text-sm text-zinc-400 transition hover:text-[#c9a227]"
-            >
-              Home
-            </Link>
-            <button
-              type="button"
-              onClick={() => logout(navigate)}
-              className="rounded-lg bg-gradient-to-r from-[#c9a227] to-[#a68516] px-4 py-2 text-sm font-semibold text-black shadow-md shadow-amber-900/30 hover:from-[#e8c547] hover:to-[#c9a227]"
-            >
-              Sign out
-            </button>
+              <button
+                type="button"
+                onClick={() => logout(navigate)}
+                className="rounded-lg bg-gradient-to-r from-[#c9a227] to-[#a68516] px-4 py-2 text-sm font-semibold text-black shadow-md shadow-amber-900/30 hover:from-[#e8c547] hover:to-[#c9a227]"
+              >
+                Sign out
+              </button>
+            </div>
           </div>
-        </div>
         </div>
       </header>
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">{children}</div>
@@ -112,7 +146,38 @@ export function RoleDashboardLayout({
   );
 }
 
-export function RoleDashboardLoading() {
+export function RoleDashboardLoading({ showStaffSidebar = true }: { showStaffSidebar?: boolean }) {
+  const [user, setUser] = useState<StaffAppShellUser | null>(null);
+
+  useEffect(() => {
+    const raw = localStorage.getItem('user');
+    if (!raw) return;
+    try {
+      setUser(JSON.parse(raw));
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  if (showStaffSidebar && user) {
+    const navigation = sidebarItemsForRole(user.role);
+    const roleHome = getDefaultHomePath(user.role);
+    return (
+      <StaffAppShell
+        user={user}
+        navigation={navigation}
+        roleHome={roleHome}
+        headerTitle="Loading…"
+        showApiHealthBanner={false}
+        mainInnerClassName="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+      >
+        <div className="flex min-h-[50vh] items-center justify-center">
+          <div className="h-12 w-12 animate-spin rounded-full border-2 border-[#c9a227] border-t-transparent" />
+        </div>
+      </StaffAppShell>
+    );
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#070707]">
       <div className="h-12 w-12 animate-spin rounded-full border-2 border-[#c9a227] border-t-transparent" />
@@ -120,7 +185,6 @@ export function RoleDashboardLoading() {
   );
 }
 
-/** Primary action grid button (dark theme). */
 export function QuickActionButton({
   children,
   onClick,

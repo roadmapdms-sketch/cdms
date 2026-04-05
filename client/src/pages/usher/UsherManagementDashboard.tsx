@@ -64,7 +64,7 @@ const UsherManagementDashboard: React.FC = () => {
   }
 
   return (
-    <RoleDashboardLayout title="Usher management" roleBadge="Guest experience & seating" showOperationsConsole>
+    <RoleDashboardLayout title="Usher management" roleBadge="Guest experience & seating">
       <DashboardSection title="Serving snapshot">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           <StatCard label="Events on file" value={stats.overview.totalEvents} />

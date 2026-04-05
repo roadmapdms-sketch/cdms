@@ -57,11 +57,7 @@ const PastorDashboard: React.FC = () => {
   }
 
   return (
-    <RoleDashboardLayout
-      title="Pastoral leadership"
-      roleBadge="Pastor / staff · care & engagement"
-      showOperationsConsole
-    >
+    <RoleDashboardLayout title="Pastoral leadership" roleBadge="Pastor / staff · care & engagement">
       <DashboardSection title="Engagement snapshot">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           <StatCard label="New members (week)" value={stats.newMembersThisWeek} />

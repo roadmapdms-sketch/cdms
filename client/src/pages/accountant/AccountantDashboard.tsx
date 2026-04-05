@@ -57,11 +57,7 @@ const AccountantDashboard: React.FC = () => {
   }
 
   return (
-    <RoleDashboardLayout
-      title="Finance & accounting"
-      roleBadge="Accountant · finance modules"
-      showOperationsConsole
-    >
+    <RoleDashboardLayout title="Finance & accounting" roleBadge="Accountant · finance modules">
       <DashboardSection title="Financial overview">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           <StatCard label="Total budget" value={`₦${stats.totalBudget.toLocaleString()}`} />

@@ -56,7 +56,7 @@ const PartnersPortalDashboard: React.FC = () => {
   }
 
   return (
-    <RoleDashboardLayout title="Ministry partners" roleBadge="Partners coordinator" showOperationsConsole>
+    <RoleDashboardLayout title="Ministry partners" roleBadge="Partners coordinator">
       <DashboardSection title="Relationship context">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <StatCard label="Members on file" value={stats.overview.totalMembers} />

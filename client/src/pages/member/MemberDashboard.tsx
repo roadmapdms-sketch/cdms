@@ -57,11 +57,11 @@ const MemberDashboard: React.FC = () => {
   }, []);
 
   if (loading) {
-    return <RoleDashboardLoading />;
+    return <RoleDashboardLoading showStaffSidebar={false} />;
   }
 
   return (
-    <RoleDashboardLayout title="Member portal" roleBadge="Member access" showOperationsConsole={false}>
+    <RoleDashboardLayout title="Member portal" roleBadge="Member access" showStaffSidebar={false}>
       <DashboardSection title="Welcome">
         <div className="rounded-2xl border border-[#c9a227]/25 bg-gradient-to-br from-zinc-900/80 to-black/60 p-6 sm:p-8">
           <h2 className="text-2xl font-semibold text-[#f5e6b8]">Welcome, {memberData.name || 'friend'}.</h2>

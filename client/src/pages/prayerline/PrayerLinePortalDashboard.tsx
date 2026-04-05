@@ -65,7 +65,7 @@ const PrayerLinePortalDashboard: React.FC = () => {
   }
 
   return (
-    <RoleDashboardLayout title="Prayer line" roleBadge="Prayer line coordinator" showOperationsConsole>
+    <RoleDashboardLayout title="Prayer line" roleBadge="Prayer line coordinator">
       <DashboardSection title="Coverage snapshot">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           <StatCard label="Volunteers (total)" value={stats.overview.totalVolunteers} />

@@ -57,11 +57,7 @@ const VolunteerDashboard: React.FC = () => {
   }
 
   return (
-    <RoleDashboardLayout
-      title="Volunteer coordination"
-      roleBadge="Volunteer coordinator"
-      showOperationsConsole
-    >
+    <RoleDashboardLayout title="Volunteer coordination" roleBadge="Volunteer coordinator">
       <DashboardSection title="Serving snapshot">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           <StatCard label="Active volunteers" value={stats.activeVolunteers} />

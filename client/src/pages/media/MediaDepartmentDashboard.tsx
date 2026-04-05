@@ -55,7 +55,7 @@ const MediaDepartmentDashboard: React.FC = () => {
   }
 
   return (
-    <RoleDashboardLayout title="Media department" roleBadge="Media & production" showOperationsConsole>
+    <RoleDashboardLayout title="Media department" roleBadge="Media & production">
       <DashboardSection title="Production snapshot">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <StatCard label="Total events (period)" value={stats.overview.totalEvents} />
