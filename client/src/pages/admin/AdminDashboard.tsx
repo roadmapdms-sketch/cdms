@@ -38,6 +38,17 @@ interface ActivityRow {
   portalId: string;
 }
 
+interface UserRoleRow {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 const PORTAL_LABELS: Record<string, string> = {
   administrator: 'Admin',
   finance: 'Finance',
@@ -76,6 +87,13 @@ const AdminDashboard: React.FC = () => {
   const [activity, setActivity] = useState<ActivityRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadNote, setLoadNote] = useState<string | null>(null);
+  const [roleUsers, setRoleUsers] = useState<UserRoleRow[]>([]);
+  const [availableRoles, setAvailableRoles] = useState<string[]>([]);
+  const [draftRoles, setDraftRoles] = useState<Record<string, string>>({});
+  const [savingUserId, setSavingUserId] = useState<string | null>(null);
+  const [roleNote, setRoleNote] = useState<string | null>(null);
+  const [canManageAdminRole, setCanManageAdminRole] = useState(false);
+  const [rootAdminConfigured, setRootAdminConfigured] = useState(false);
   const navigate = useNavigate();
 
   const loadOverview = useCallback(async () => {
@@ -112,9 +130,56 @@ const AdminDashboard: React.FC = () => {
     }
   }, []);
 
+  const loadRoleUsers = useCallback(async () => {
+    const token = localStorage.getItem('token');
+    const headers = { Authorization: `Bearer ${token}` };
+    try {
+      const res = await axios.get(`${API_BASE_URL}/admin/users/roles`, { headers });
+      const users = (res.data?.users ?? []) as UserRoleRow[];
+      const roles = (res.data?.availableRoles ?? []) as string[];
+      const initialDrafts: Record<string, string> = {};
+      users.forEach((u) => {
+        initialDrafts[u.id] = u.role;
+      });
+      setRoleUsers(users);
+      setAvailableRoles(roles);
+      setDraftRoles(initialDrafts);
+      setCanManageAdminRole(Boolean(res.data?.canManageAdminRole));
+      setRootAdminConfigured(Boolean(res.data?.rootAdminConfigured));
+      setRoleNote(null);
+    } catch (err: any) {
+      setRoleNote(err?.response?.data?.error?.message || 'Could not load role management users.');
+    }
+  }, []);
+
+  const saveUserRole = useCallback(
+    async (user: UserRoleRow) => {
+      const nextRole = draftRoles[user.id] || user.role;
+      if (nextRole === user.role) return;
+      const token = localStorage.getItem('token');
+      const headers = { Authorization: `Bearer ${token}` };
+      setSavingUserId(user.id);
+      try {
+        await axios.patch(
+          `${API_BASE_URL}/admin/users/${user.id}/role`,
+          { role: nextRole },
+          { headers }
+        );
+        setRoleNote(`Role updated for ${user.firstName} ${user.lastName}.`);
+        await loadRoleUsers();
+      } catch (err: any) {
+        setRoleNote(err?.response?.data?.error?.message || 'Failed to update role.');
+      } finally {
+        setSavingUserId(null);
+      }
+    },
+    [draftRoles, loadRoleUsers]
+  );
+
   useEffect(() => {
     loadOverview();
-  }, [loadOverview]);
+    loadRoleUsers();
+  }, [loadOverview, loadRoleUsers]);
 
   if (loading) {
     return <RoleDashboardLoading />;
@@ -289,6 +354,84 @@ const AdminDashboard: React.FC = () => {
           </DataPanel>
         </DashboardSection>
       ) : null}
+
+      <DashboardSection title="User role management">
+        <DataPanel title="Assign portal access roles">
+          <p className="mb-4 max-w-4xl text-sm text-zinc-500">
+            Update user portal roles here. ADMIN grants and revocations are restricted to the root admin account
+            configured in environment variables.
+          </p>
+          {!rootAdminConfigured ? (
+            <p className="mb-4 rounded-lg border border-amber-500/30 bg-amber-950/30 px-4 py-2 text-sm text-amber-100/90">
+              ROOT_ADMIN_EMAIL is not configured on the server. ADMIN role changes are locked.
+            </p>
+          ) : null}
+          {roleNote ? (
+            <p className="mb-4 rounded-lg border border-[#c9a227]/25 bg-zinc-900/70 px-4 py-2 text-sm text-[#f4e4a8]">
+              {roleNote}
+            </p>
+          ) : null}
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-left text-sm">
+              <thead>
+                <tr className="border-b border-zinc-700 text-xs uppercase tracking-wider text-zinc-500">
+                  <th className="pb-3 pr-4 font-medium">Name</th>
+                  <th className="pb-3 pr-4 font-medium">Email</th>
+                  <th className="pb-3 pr-4 font-medium">Current role</th>
+                  <th className="pb-3 pr-4 font-medium">New role</th>
+                  <th className="pb-3 font-medium">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-zinc-800">
+                {roleUsers.map((u) => {
+                  const isAdminRoleTouch = u.role === 'ADMIN' || draftRoles[u.id] === 'ADMIN';
+                  const adminLocked = isAdminRoleTouch && !canManageAdminRole;
+                  const changed = (draftRoles[u.id] || u.role) !== u.role;
+                  return (
+                    <tr key={u.id}>
+                      <td className="py-3 pr-4 text-zinc-200">{`${u.firstName} ${u.lastName}`}</td>
+                      <td className="py-3 pr-4 text-zinc-400">{u.email}</td>
+                      <td className="py-3 pr-4">
+                        <span className="rounded-md border border-[#c9a227]/25 bg-[#c9a227]/10 px-2 py-0.5 text-xs text-[#e8c547]">
+                          {u.role}
+                        </span>
+                      </td>
+                      <td className="py-3 pr-4">
+                        <select
+                          value={draftRoles[u.id] || u.role}
+                          onChange={(e) =>
+                            setDraftRoles((prev) => ({
+                              ...prev,
+                              [u.id]: e.target.value,
+                            }))
+                          }
+                          className="rounded-md border border-zinc-700 bg-zinc-900 px-2 py-1 text-sm text-zinc-100"
+                        >
+                          {availableRoles.map((r) => (
+                            <option key={r} value={r}>
+                              {r}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
+                      <td className="py-3">
+                        <button
+                          type="button"
+                          disabled={savingUserId === u.id || !changed || adminLocked}
+                          onClick={() => saveUserRole(u)}
+                          className="rounded-lg border border-[#c9a227]/35 px-3 py-1.5 text-xs font-semibold text-[#f4e4a8] disabled:cursor-not-allowed disabled:opacity-50 hover:bg-[#c9a227]/10"
+                        >
+                          {savingUserId === u.id ? 'Saving...' : adminLocked ? 'Root admin only' : 'Save role'}
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </DataPanel>
+      </DashboardSection>
 
       <DashboardSection title="Shortcuts">
         <p className="mb-4 max-w-3xl text-sm text-zinc-500">

@@ -7,6 +7,28 @@ const prisma = new PrismaClient();
 
 const PASTOR_DASHBOARD_ROLES = ['ADMIN', 'PASTOR', 'STAFF'];
 const VOLUNTEER_COORD_ROLES = ['ADMIN', 'VOLUNTEER_COORDINATOR'];
+const MANAGEABLE_USER_ROLES = [
+  'ADMIN',
+  'ACCOUNTANT',
+  'PASTOR',
+  'STAFF',
+  'VOLUNTEER_COORDINATOR',
+  'MEDIA_DEPARTMENT',
+  'KITCHEN_RESTAURANT',
+  'MANAGEMENT',
+  'USHER_MANAGEMENT',
+  'PARTNERS_COORDINATOR',
+  'PRAYER_LINE_COORDINATOR',
+  'VOLUNTEER',
+  'USER',
+  'MEMBER',
+] as const;
+
+function isRootAdminEmail(email: string | undefined): boolean {
+  const rootEmail = (process.env.ROOT_ADMIN_EMAIL || '').trim().toLowerCase();
+  if (!rootEmail || !email) return false;
+  return email.trim().toLowerCase() === rootEmail;
+}
 
 function startOfMonth(d = new Date()) {
   return new Date(d.getFullYear(), d.getMonth(), 1);
@@ -342,6 +364,95 @@ adminDashboardRouter.get('/overview', authMiddleware, requireRole(['ADMIN']), as
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: { message: 'Failed to load admin overview' } });
+  }
+});
+
+/** /api/admin/users/roles — list users + role assignment metadata for admin panel */
+adminDashboardRouter.get('/users/roles', authMiddleware, requireRole(['ADMIN']), async (req, res) => {
+  try {
+    const requester = req as AuthRequest;
+    const users = await prisma.user.findMany({
+      orderBy: [{ role: 'asc' }, { createdAt: 'asc' }],
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+        isActive: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    res.json({
+      users,
+      availableRoles: MANAGEABLE_USER_ROLES,
+      rootAdminConfigured: !!(process.env.ROOT_ADMIN_EMAIL || '').trim(),
+      canManageAdminRole: isRootAdminEmail(requester.email),
+    });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: { message: 'Failed to load users for role management' } });
+  }
+});
+
+/** /api/admin/users/:id/role — update one user role (ADMIN changes require root admin identity). */
+adminDashboardRouter.patch('/users/:id/role', authMiddleware, requireRole(['ADMIN']), async (req, res) => {
+  try {
+    const requester = req as AuthRequest;
+    const userId = req.params.id;
+    const role = String(req.body?.role || '').trim().toUpperCase();
+
+    if (!MANAGEABLE_USER_ROLES.includes(role as (typeof MANAGEABLE_USER_ROLES)[number])) {
+      return res.status(400).json({ error: { message: 'Invalid role value.' } });
+    }
+
+    const target = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, role: true, email: true },
+    });
+    if (!target) {
+      return res.status(404).json({ error: { message: 'User not found.' } });
+    }
+
+    const adminRoleTouched = role === 'ADMIN' || target.role === 'ADMIN';
+    if (adminRoleTouched && !isRootAdminEmail(requester.email)) {
+      return res.status(403).json({
+        error: {
+          message:
+            'Only the root admin account configured in ROOT_ADMIN_EMAIL can grant or revoke ADMIN role.',
+        },
+      });
+    }
+
+    if (requester.userId === target.id && role !== 'ADMIN') {
+      return res.status(400).json({
+        error: { message: 'You cannot remove your own ADMIN role from this panel.' },
+      });
+    }
+
+    const updated = await prisma.user.update({
+      where: { id: userId },
+      data: { role },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+        isActive: true,
+        updatedAt: true,
+      },
+    });
+
+    res.json({
+      message: 'User role updated successfully.',
+      user: updated,
+    });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: { message: 'Failed to update user role' } });
   }
 });
 
