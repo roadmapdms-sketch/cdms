@@ -1,8 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import axios, { isAxiosError } from 'axios';
 import { AUTH_API_BASE_URL } from '../config/api';
 import { RMI_HERO_LOGO_URL } from '../constants/branding';
+import { SIGN_IN_PORTAL_OPTIONS } from '../constants/signInDestinations';
+import type { AllowedPostLoginPath } from '../utils/allowedRedirects';
 import { getSafeRedirectParam, canAccessPortalPath } from '../utils/allowedRedirects';
 
 interface LoginFormData {
@@ -30,17 +32,33 @@ const Login: React.FC = () => {
     email: '',
     password: '',
   });
+  const [signInAsPortal, setSignInAsPortal] = useState<AllowedPostLoginPath>('/dashboard');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  const redirectTarget = useMemo(
+  const redirectFromLink = useMemo(
     () => getSafeRedirectParam(searchParams.get('redirect')),
     [searchParams]
   );
 
-  const portalHint = redirectTarget ? REDIRECT_HINTS[redirectTarget] : null;
+  useEffect(() => {
+    if (redirectFromLink) {
+      setSignInAsPortal(redirectFromLink);
+    }
+  }, [redirectFromLink]);
+
+  /** URL `redirect` wins; otherwise the user’s dropdown choice. */
+  const destinationAfterLogin = redirectFromLink ?? signInAsPortal;
+
+  const portalHint = destinationAfterLogin ? REDIRECT_HINTS[destinationAfterLogin] : null;
+
+  const registerHref = useMemo(() => {
+    const q = new URLSearchParams();
+    q.set('redirect', destinationAfterLogin);
+    return `/register?${q.toString()}`;
+  }, [destinationAfterLogin]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -51,8 +69,8 @@ const Login: React.FC = () => {
   };
 
   const goAfterLogin = (role: string) => {
-    if (redirectTarget && canAccessPortalPath(redirectTarget, role)) {
-      navigate(redirectTarget, { replace: true });
+    if (destinationAfterLogin && canAccessPortalPath(destinationAfterLogin, role)) {
+      navigate(destinationAfterLogin, { replace: true });
       return;
     }
     switch (role) {
@@ -147,9 +165,9 @@ const Login: React.FC = () => {
           <p className="mt-2 text-center text-sm text-zinc-500">Data Management System</p>
           {portalHint ? (
             <p className="mt-3 rounded-lg border border-[#c9a227]/30 bg-[#c9a227]/10 px-3 py-2 text-center text-sm text-[#e8c547]">
-              {portalHint}
+              Destination: {portalHint}
               <span className="mt-1 block text-xs font-normal text-zinc-400">
-                If your role does not match this portal, you will be routed to the correct dashboard after sign-in.
+                If your account role does not match, you will be sent to the dashboard that matches your role.
               </span>
             </p>
           ) : null}
@@ -159,6 +177,41 @@ const Login: React.FC = () => {
           className="mt-8 space-y-6 rounded-2xl border border-zinc-800 bg-zinc-950/80 p-6 shadow-2xl shadow-black/50 backdrop-blur-md"
           onSubmit={handleSubmit}
         >
+          <div>
+            <label htmlFor="signInAs" className="block text-xs font-medium uppercase tracking-wider text-[#c9a227]/80">
+              Sign in as (where to open after login)
+            </label>
+            <select
+              id="signInAs"
+              name="signInAs"
+              disabled={!!redirectFromLink}
+              value={signInAsPortal}
+              onChange={(e) => setSignInAsPortal(e.target.value as AllowedPostLoginPath)}
+              className="mt-2 block w-full rounded-lg border border-zinc-700 bg-black/50 px-3 py-2.5 text-sm text-[#f5e6b8] focus:border-[#c9a227] focus:outline-none focus:ring-1 focus:ring-[#c9a227] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {SIGN_IN_PORTAL_OPTIONS.map((section) => (
+                <optgroup key={section.group} label={section.group}>
+                  {section.items.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
+            {redirectFromLink ? (
+              <p className="mt-2 text-xs text-zinc-500">
+                This destination was set from a portal link. Open the sign-in page without{' '}
+                <code className="rounded bg-zinc-900 px-1 text-[0.65rem] text-zinc-400">?redirect=</code> to choose
+                manually.
+              </p>
+            ) : (
+              <p className="mt-2 text-xs text-zinc-500">
+                Pick the portal you use day to day. Your account role must still allow that area.
+              </p>
+            )}
+          </div>
+
           <div className="-space-y-px rounded-md shadow-sm">
             <div>
               <label htmlFor="email" className="sr-only">
@@ -214,9 +267,10 @@ const Login: React.FC = () => {
           </div>
 
           <p className="text-center text-sm text-zinc-500">
-            <Link to="/register" className="font-medium text-[#c9a227] hover:text-[#e8c547]">
+            <Link to={registerHref} className="font-medium text-[#c9a227] hover:text-[#e8c547]">
               Create an account
             </Link>
+            <span className="mt-1 block text-xs text-zinc-600">Registration keeps this destination for sign-in.</span>
           </p>
         </form>
       </div>

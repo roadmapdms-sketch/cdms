@@ -1,7 +1,8 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import axios, { isAxiosError } from 'axios';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { AUTH_API_BASE_URL } from '../config/api';
+import { REGISTRATION_ACCOUNT_TYPES } from '../constants/signInDestinations';
 import { getSafeRedirectParam } from '../utils/allowedRedirects';
 
 const Register: React.FC = () => {
@@ -22,9 +23,22 @@ const Register: React.FC = () => {
     () => getSafeRedirectParam(searchParams.get('redirect')),
     [searchParams]
   );
-  const loginHref = redirectAfterLogin
-    ? `/login?redirect=${encodeURIComponent(redirectAfterLogin)}`
-    : '/login';
+
+  const suggestedAccountType = useMemo<'MEMBER' | 'USER'>(() => {
+    if (redirectAfterLogin === '/user') return 'MEMBER';
+    return 'USER';
+  }, [redirectAfterLogin]);
+
+  const [accountType, setAccountType] = useState<'MEMBER' | 'USER'>(suggestedAccountType);
+
+  useEffect(() => {
+    setAccountType(suggestedAccountType);
+  }, [suggestedAccountType]);
+
+  const loginHref = useMemo(() => {
+    const dest = redirectAfterLogin ?? (accountType === 'MEMBER' ? '/user' : '/dashboard');
+    return `/login?redirect=${encodeURIComponent(dest)}`;
+  }, [redirectAfterLogin, accountType]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -52,6 +66,7 @@ const Register: React.FC = () => {
         password: formData.password,
         firstName: formData.firstName,
         lastName: formData.lastName,
+        role: accountType,
       });
 
       setSuccess('Registration successful! Taking you to sign in…');
@@ -90,8 +105,7 @@ const Register: React.FC = () => {
             Register for Data Management System (DMS)
             {redirectAfterLogin ? (
               <span className="mt-2 block text-xs text-gray-500">
-                After registering you&apos;ll be sent to sign in; we&apos;ll keep your portal destination when your role
-                allows it.
+                After registering you&apos;ll be sent to sign in with the same destination when your role allows it.
               </span>
             ) : null}
           </p>
@@ -99,6 +113,51 @@ const Register: React.FC = () => {
 
         <div className="mt-8 bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <form className="space-y-6" onSubmit={handleSubmit}>
+            <fieldset>
+              <legend className="text-sm font-semibold text-gray-900">Registering as</legend>
+              <p className="mt-1 text-xs text-gray-500">
+                Self-service signup can only create <strong className="text-gray-700">member</strong> or{' '}
+                <strong className="text-gray-700">general staff (USER)</strong> accounts. Coordinator roles (pastor,
+                finance, media, etc.) are assigned by an administrator after you have an account.
+              </p>
+              <div className="mt-3 space-y-3">
+                {REGISTRATION_ACCOUNT_TYPES.map((opt) => (
+                  <label
+                    key={opt.value}
+                    className={`flex cursor-pointer rounded-lg border p-3 transition ${
+                      accountType === opt.value
+                        ? 'border-blue-500 bg-blue-50/80 ring-1 ring-blue-500'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="accountType"
+                      value={opt.value}
+                      checked={accountType === opt.value}
+                      onChange={() => setAccountType(opt.value)}
+                      className="mt-1 h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="ml-3">
+                      <span className="block text-sm font-medium text-gray-900">{opt.label}</span>
+                      <span className="mt-0.5 block text-xs text-gray-500">{opt.description}</span>
+                    </span>
+                  </label>
+                ))}
+              </div>
+              {accountType === 'MEMBER' && redirectAfterLogin && redirectAfterLogin !== '/user' ? (
+                <p className="mt-2 text-xs text-amber-800">
+                  You chose a member account but the link targets another portal. After login, members always open the
+                  member portal until an admin changes your role.
+                </p>
+              ) : null}
+              {accountType === 'USER' && redirectAfterLogin === '/user' ? (
+                <p className="mt-2 text-xs text-amber-800">
+                  For the member portal experience, select <strong>Member portal</strong> above—or expect to land on the
+                  operations console until your role is updated.
+                </p>
+              ) : null}
+            </fieldset>
             {error ? (
               <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">{error}</div>
             ) : null}
