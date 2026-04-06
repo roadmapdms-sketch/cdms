@@ -5,6 +5,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import PublicLandingOrRedirect from './components/PublicLandingOrRedirect';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import PortalInfoPage from './pages/PortalInfoPage';
 import Dashboard from './pages/Dashboard';
 import Members from './pages/Members';
 import Attendance from './pages/Attendance';
@@ -60,6 +61,7 @@ function App() {
           <Route path="/" element={<PublicLandingOrRedirect />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/portal/:slug" element={<PortalInfoPage />} />
 
           <Route
             path="/admin"

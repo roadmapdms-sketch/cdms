@@ -100,92 +100,92 @@ const PORTALS: Array<{
   {
     id: 'admin',
     label: 'Administrator',
-    path: '/login?redirect=/admin',
+    path: '/portal/admin',
     desc: 'Full system oversight, users, and every module in the operations console.',
     highlight: true,
   },
   {
     id: 'finance',
     label: 'Finance & accounting',
-    path: '/login?redirect=/accountant',
+    path: '/portal/finance',
     desc: 'Live budget, expenses, vendors, giving, budget planning workflow, and builders (pledges).',
   },
   {
     id: 'pastor',
     label: 'Pastoral leadership',
-    path: '/login?redirect=/pastor',
+    path: '/portal/pastor',
     desc: 'Pastoral care, members, prayer line coverage, partners, and communications.',
   },
   {
     id: 'volunteer',
     label: 'Volunteer coordination',
-    path: '/login?redirect=/volunteer',
+    path: '/portal/volunteer',
     desc: 'Teams, rosters, events, and serving opportunities.',
   },
   {
     id: 'media',
     label: 'Media department',
-    path: '/login?redirect=/media',
+    path: '/portal/media',
     desc: 'Production, communications, events, and AV inventory—sign in with a media department account.',
   },
   {
     id: 'kitchen',
     label: 'Kitchen & restaurant',
-    path: '/login?redirect=/kitchen',
+    path: '/portal/kitchen',
     desc: 'Hospitality operations: events, inventory, volunteers, and guest facilities.',
   },
   {
     id: 'management',
     label: 'Management',
-    path: '/login?redirect=/management',
+    path: '/portal/management',
     desc: 'Leadership snapshot: reporting, members, events, and partners (finance detail stays in finance roles).',
   },
   {
     id: 'ushers',
     label: 'Usher management',
-    path: '/login?redirect=/ushers',
+    path: '/portal/ushers',
     desc: 'Guest experience: attendance, events, usher teams, member lookup, and communications.',
   },
   {
     id: 'ministry-partners',
     label: 'Ministry partners',
-    path: '/login?redirect=/ministry-partners',
+    path: '/portal/ministry-partners',
     desc: 'Dedicated partners portal—directory, renewals, and comms (partners coordinator account).',
   },
   {
     id: 'prayer-line-portal',
     label: 'Prayer line',
-    path: '/login?redirect=/prayer-line-portal',
+    path: '/portal/prayer-line-portal',
     desc: 'Dedicated prayer line portal—slots, intercessors, and pastoral handoffs (prayer line coordinator account).',
   },
   {
     id: 'reporting',
     label: 'Reporting dashboard',
-    path: '/login?redirect=/dashboard',
+    path: '/portal/reporting',
     desc: 'Cross-module KPIs plus the reports library—after sign-in use Reporting dashboard and Reports.',
   },
   {
     id: 'hospitality',
     label: 'Hostels & guest house',
-    path: '/login?redirect=/dashboard',
+    path: '/portal/hospitality',
     desc: 'Reservations, occupancy, and housekeeping for hostels and guest-house stays in the staff console.',
   },
   {
     id: 'builders',
     label: 'Builders (campaigns)',
-    path: '/login?redirect=/dashboard',
+    path: '/portal/builders',
     desc: 'Capital campaigns and builder cohorts from the staff operations console.',
   },
   {
     id: 'member',
     label: 'Member portal',
-    path: '/login?redirect=/user',
+    path: '/portal/member',
     desc: 'Personal schedule, giving, and updates.',
   },
   {
     id: 'staff',
     label: 'Staff operations',
-    path: '/login?redirect=/dashboard',
+    path: '/portal/staff',
     desc: 'Full sidebar: events, inventory, volunteers, communications, and all modules your role allows.',
   },
 ];
@@ -249,13 +249,13 @@ const LandingPage: React.FC = () => {
 
           <div className="mt-12 flex flex-wrap justify-center gap-3 sm:mt-14">
             <Link
-              to="/login?redirect=/admin"
+              to="/portal/admin"
               className="rounded-lg bg-gradient-to-r from-[#e8c547] to-[#c9a227] px-7 py-3 text-sm font-semibold text-black shadow-lg shadow-[rgba(201,162,39,0.25)] transition hover:from-[#f4e4a8] hover:to-[#e8c547]"
             >
-              Admin sign-in
+              Administrator portal
             </Link>
             <Link
-              to="/register"
+              to="/register?redirect=/admin"
               className="rounded-lg border border-[#c9a227]/55 px-7 py-3 text-sm font-medium text-[#f5e6b8] transition hover:border-[#e8c547] hover:bg-[#c9a227]/10"
             >
               Register
@@ -276,9 +276,8 @@ const LandingPage: React.FC = () => {
             Ministry portals
           </h2>
           <p className="mx-auto mt-3 max-w-2xl text-center text-[#f4e4a8]/70">
-            Choose a portal to sign in. Role-based entries (admin, finance, pastor, etc.) open your home dashboard.
-            Module-focused cards use the staff console—after sign-in, open the matching item in the sidebar (your account
-            must have access).
+            Open a full-page guide for each portal—what it covers, how access works—then sign in or create an account
+            from there. Your role must match the portal your administrator assigned.
           </p>
           <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {PORTALS.map((p) => (
@@ -294,7 +293,7 @@ const LandingPage: React.FC = () => {
                 <span className="text-xs font-semibold uppercase tracking-wider text-[#c9a227]">Portal</span>
                 <span className="mt-1 text-lg font-semibold text-[#f5e6b8] group-hover:text-[#f4e4a8]">{p.label}</span>
                 <span className="mt-2 text-sm leading-snug text-[#f4e4a8]/65">{p.desc}</span>
-                <span className="mt-4 text-sm font-medium text-[#e8c547]">Sign in →</span>
+                <span className="mt-4 text-sm font-medium text-[#e8c547]">View portal →</span>
               </Link>
             ))}
           </div>

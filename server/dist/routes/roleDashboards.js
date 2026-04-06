@@ -22,39 +22,273 @@ function startOfWeek(d = new Date()) {
     n.setHours(0, 0, 0, 0);
     return n;
 }
+async function loadAdminStatsPayload() {
+    const now = new Date();
+    const monthStart = startOfMonth();
+    const [totalMembers, budgetSum, upcomingEvents, membersThisMonth, incomeMonth, attendanceMonth,] = await Promise.all([
+        prisma.member.count(),
+        prisma.budget.aggregate({ _sum: { amount: true } }),
+        prisma.event.count({
+            where: { startDate: { gte: now }, status: { not: 'CANCELLED' } },
+        }),
+        prisma.member.count({ where: { createdAt: { gte: monthStart } } }),
+        prisma.financialRecord.aggregate({
+            where: { date: { gte: monthStart } },
+            _sum: { amount: true },
+        }),
+        prisma.attendance.count({ where: { checkIn: { gte: monthStart } } }),
+    ]);
+    const monthlyGrowth = totalMembers > 0 ? Math.min(100, Math.round((membersThisMonth / totalMembers) * 100)) : 0;
+    const attendanceRate = totalMembers > 0 ? Math.min(100, Math.round((attendanceMonth / Math.max(1, totalMembers * 3)) * 100)) : 0;
+    return {
+        totalMembers,
+        totalBudget: budgetSum._sum.amount ?? 0,
+        attendanceRate,
+        upcomingEvents,
+        monthlyGrowth,
+        monthlyIncome: incomeMonth._sum.amount ?? 0,
+    };
+}
+/** Ministry portals shown on the admin control center (align with client routes / roles). */
+const ADMIN_PORTAL_REGISTRY = [
+    {
+        id: 'administrator',
+        label: 'Administrator',
+        description: 'Full system visibility',
+        path: '/admin',
+        roles: ['ADMIN'],
+    },
+    {
+        id: 'finance',
+        label: 'Finance & accounting',
+        description: 'Budget, expenses, vendors, giving',
+        path: '/accountant',
+        roles: ['ACCOUNTANT'],
+    },
+    {
+        id: 'pastoral',
+        label: 'Pastoral leadership',
+        description: 'Care, members, prayer coverage',
+        path: '/pastor',
+        roles: ['PASTOR', 'STAFF'],
+    },
+    {
+        id: 'volunteers',
+        label: 'Volunteer coordination',
+        description: 'Teams, rosters, events',
+        path: '/volunteer',
+        roles: ['VOLUNTEER_COORDINATOR'],
+    },
+    {
+        id: 'media',
+        label: 'Media department',
+        description: 'Production, comms, AV',
+        path: '/media',
+        roles: ['MEDIA_DEPARTMENT'],
+    },
+    {
+        id: 'kitchen',
+        label: 'Kitchen & restaurant',
+        description: 'Hospitality & inventory',
+        path: '/kitchen',
+        roles: ['KITCHEN_RESTAURANT'],
+    },
+    {
+        id: 'management',
+        label: 'Management',
+        description: 'Leadership reporting',
+        path: '/management',
+        roles: ['MANAGEMENT'],
+    },
+    {
+        id: 'ushers',
+        label: 'Usher management',
+        description: 'Guest experience & seating',
+        path: '/ushers',
+        roles: ['USHER_MANAGEMENT'],
+    },
+    {
+        id: 'partners',
+        label: 'Ministry partners',
+        description: 'Covenant partners & orgs',
+        path: '/ministry-partners',
+        roles: ['PARTNERS_COORDINATOR'],
+    },
+    {
+        id: 'prayer_line',
+        label: 'Prayer line',
+        description: 'Coverage & intercessors',
+        path: '/prayer-line-portal',
+        roles: ['PRAYER_LINE_COORDINATOR'],
+    },
+    {
+        id: 'operations',
+        label: 'Operations staff',
+        description: 'Shared operations console',
+        path: '/dashboard',
+        roles: ['USER', 'VOLUNTEER'],
+    },
+];
+function summarizePortalUsers(users, roles) {
+    const subset = users.filter((u) => roles.includes(u.role));
+    const active = subset.filter((u) => u.isActive);
+    let last = new Date(0);
+    for (const u of subset) {
+        if (u.updatedAt > last)
+            last = u.updatedAt;
+    }
+    return {
+        accountCount: subset.length,
+        activeAccountCount: active.length,
+        lastAccountActivityAt: subset.length ? last.toISOString() : null,
+    };
+}
 /** /api/admin/stats */
 exports.adminDashboardRouter = express_1.default.Router();
 exports.adminDashboardRouter.get('/stats', auth_1.authMiddleware, (0, auth_1.requireRole)(['ADMIN']), async (_req, res) => {
     try {
-        const now = new Date();
-        const monthStart = startOfMonth();
-        const [totalMembers, budgetSum, upcomingEvents, membersThisMonth, incomeMonth, attendanceMonth,] = await Promise.all([
-            prisma.member.count(),
-            prisma.budget.aggregate({ _sum: { amount: true } }),
-            prisma.event.count({
-                where: { startDate: { gte: now }, status: { not: 'CANCELLED' } },
-            }),
-            prisma.member.count({ where: { createdAt: { gte: monthStart } } }),
-            prisma.financialRecord.aggregate({
-                where: { date: { gte: monthStart } },
-                _sum: { amount: true },
-            }),
-            prisma.attendance.count({ where: { checkIn: { gte: monthStart } } }),
-        ]);
-        const monthlyGrowth = totalMembers > 0 ? Math.min(100, Math.round((membersThisMonth / totalMembers) * 100)) : 0;
-        const attendanceRate = totalMembers > 0 ? Math.min(100, Math.round((attendanceMonth / Math.max(1, totalMembers * 3)) * 100)) : 0;
-        res.json({
-            totalMembers,
-            totalBudget: budgetSum._sum.amount ?? 0,
-            attendanceRate,
-            upcomingEvents,
-            monthlyGrowth,
-            monthlyIncome: incomeMonth._sum.amount ?? 0,
-        });
+        res.json(await loadAdminStatsPayload());
     }
     catch (e) {
         console.error(e);
         res.status(500).json({ error: { message: 'Failed to load admin stats' } });
+    }
+});
+/** /api/admin/overview — stats + portal registry with live user counts + recent cross-system activity */
+exports.adminDashboardRouter.get('/overview', auth_1.authMiddleware, (0, auth_1.requireRole)(['ADMIN']), async (_req, res) => {
+    try {
+        const [stats, portalUsers, recentMembers, recentEvents, recentGiving, recentExpenses, recentComms, recentPastoral, recentAttendance, recentVolunteer,] = await Promise.all([
+            loadAdminStatsPayload(),
+            prisma.user.findMany({
+                select: { role: true, isActive: true, updatedAt: true },
+            }),
+            prisma.member.findMany({
+                take: 6,
+                orderBy: { createdAt: 'desc' },
+                select: { firstName: true, lastName: true, createdAt: true, status: true },
+            }),
+            prisma.event.findMany({
+                take: 6,
+                orderBy: { createdAt: 'desc' },
+                select: { title: true, createdAt: true, status: true, type: true },
+            }),
+            prisma.financialRecord.findMany({
+                take: 6,
+                orderBy: { createdAt: 'desc' },
+                select: { description: true, type: true, amount: true, date: true, createdAt: true },
+            }),
+            prisma.expense.findMany({
+                take: 6,
+                orderBy: { createdAt: 'desc' },
+                select: { description: true, category: true, amount: true, status: true, date: true, createdAt: true },
+            }),
+            prisma.communication.findMany({
+                take: 6,
+                orderBy: { createdAt: 'desc' },
+                select: { subject: true, method: true, status: true, createdAt: true },
+            }),
+            prisma.pastoralCareRecord.findMany({
+                take: 6,
+                orderBy: { createdAt: 'desc' },
+                select: { type: true, description: true, status: true, createdAt: true },
+            }),
+            prisma.attendance.findMany({
+                take: 6,
+                orderBy: { checkIn: 'desc' },
+                select: { checkIn: true, status: true, createdAt: true },
+            }),
+            prisma.volunteerAssignment.findMany({
+                take: 6,
+                orderBy: { createdAt: 'desc' },
+                select: { role: true, status: true, createdAt: true },
+            }),
+        ]);
+        const portals = ADMIN_PORTAL_REGISTRY.map((p) => ({
+            ...p,
+            ...summarizePortalUsers(portalUsers, p.roles),
+        }));
+        const activity = [];
+        for (const m of recentMembers) {
+            activity.push({
+                at: m.createdAt.toISOString(),
+                kind: 'member',
+                title: `Member: ${m.firstName} ${m.lastName}`,
+                detail: m.status,
+                portalId: 'pastoral',
+            });
+        }
+        for (const e of recentEvents) {
+            activity.push({
+                at: e.createdAt.toISOString(),
+                kind: 'event',
+                title: e.title,
+                detail: `${e.type} · ${e.status}`,
+                portalId: 'volunteers',
+            });
+        }
+        for (const g of recentGiving) {
+            activity.push({
+                at: g.createdAt.toISOString(),
+                kind: 'giving',
+                title: g.description || `Giving (${g.type})`,
+                detail: `₦${g.amount.toLocaleString()}`,
+                portalId: 'finance',
+            });
+        }
+        for (const x of recentExpenses) {
+            activity.push({
+                at: x.createdAt.toISOString(),
+                kind: 'expense',
+                title: x.description,
+                detail: `${x.category} · ${x.status} · ₦${x.amount.toLocaleString()}`,
+                portalId: 'finance',
+            });
+        }
+        for (const c of recentComms) {
+            activity.push({
+                at: c.createdAt.toISOString(),
+                kind: 'communication',
+                title: c.subject,
+                detail: `${c.method} · ${c.status}`,
+                portalId: 'media',
+            });
+        }
+        for (const pc of recentPastoral) {
+            activity.push({
+                at: pc.createdAt.toISOString(),
+                kind: 'pastoral',
+                title: pc.type,
+                detail: (pc.description || '').length > 120
+                    ? `${(pc.description || '').slice(0, 120)}…`
+                    : pc.description || null,
+                portalId: 'pastoral',
+            });
+        }
+        for (const a of recentAttendance) {
+            activity.push({
+                at: a.checkIn.toISOString(),
+                kind: 'attendance',
+                title: 'Attendance check-in',
+                detail: a.status,
+                portalId: 'ushers',
+            });
+        }
+        for (const v of recentVolunteer) {
+            activity.push({
+                at: v.createdAt.toISOString(),
+                kind: 'volunteer',
+                title: `Volunteer: ${v.role}`,
+                detail: v.status,
+                portalId: 'volunteers',
+            });
+        }
+        activity.sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
+        const recentActivity = activity.slice(0, 24);
+        res.json({ stats, portals, recentActivity });
+    }
+    catch (e) {
+        console.error(e);
+        res.status(500).json({ error: { message: 'Failed to load admin overview' } });
     }
 });
 /** /api/accountant/stats */

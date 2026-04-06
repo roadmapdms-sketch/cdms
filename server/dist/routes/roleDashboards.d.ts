@@ -1,3 +1,11 @@
+export type AdminStatsPayload = {
+    totalMembers: number;
+    totalBudget: number;
+    attendanceRate: number;
+    upcomingEvents: number;
+    monthlyGrowth: number;
+    monthlyIncome: number;
+};
 /** /api/admin/stats */
 export declare const adminDashboardRouter: import("express-serve-static-core").Router;
 /** /api/accountant/stats */
