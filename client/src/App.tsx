@@ -66,7 +66,7 @@ function App() {
           <Route
             path="/admin"
             element={
-              <ProtectedRoute allowedRoles={['ADMIN']}>
+              <ProtectedRoute allowedRoles={['ADMIN']} requireRootAdmin>
                 <AdminDashboard />
               </ProtectedRoute>
             }
@@ -106,7 +106,7 @@ function App() {
           <Route
             path="/user"
             element={
-              <ProtectedRoute allowedRoles={['MEMBER']}>
+              <ProtectedRoute allowedRoles={['MEMBER', 'USER', 'VOLUNTEER']}>
                 <MemberDashboard />
               </ProtectedRoute>
             }

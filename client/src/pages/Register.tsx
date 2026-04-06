@@ -36,9 +36,9 @@ const Register: React.FC = () => {
   }, [suggestedAccountType]);
 
   const loginHref = useMemo(() => {
-    const dest = redirectAfterLogin ?? (accountType === 'MEMBER' ? '/user' : '/dashboard');
+    const dest = redirectAfterLogin ?? '/user';
     return `/login?redirect=${encodeURIComponent(dest)}`;
-  }, [redirectAfterLogin, accountType]);
+  }, [redirectAfterLogin]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -153,8 +153,7 @@ const Register: React.FC = () => {
               ) : null}
               {accountType === 'USER' && redirectAfterLogin === '/user' ? (
                 <p className="mt-2 text-xs text-amber-800">
-                  For the member portal experience, select <strong>Member portal</strong> above—or expect to land on the
-                  operations console until your role is updated.
+                  USER accounts also land on the member portal by default until an admin upgrades your role.
                 </p>
               ) : null}
             </fieldset>

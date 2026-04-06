@@ -32,7 +32,7 @@ const Login: React.FC = () => {
     email: '',
     password: '',
   });
-  const [signInAsPortal, setSignInAsPortal] = useState<AllowedPostLoginPath>('/dashboard');
+  const [signInAsPortal, setSignInAsPortal] = useState<AllowedPostLoginPath>('/user');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
@@ -113,7 +113,7 @@ const Login: React.FC = () => {
       case 'VOLUNTEER':
       case 'USER':
       default:
-        navigate('/dashboard', { replace: true });
+        navigate('/user', { replace: true });
         break;
     }
   };

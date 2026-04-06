@@ -1,6 +1,6 @@
 import express from 'express';
 import { PrismaClient } from '@prisma/client';
-import { authMiddleware, requireRole, AuthRequest } from '../middleware/auth';
+import { authMiddleware, requireRole, requireRootAdmin, AuthRequest } from '../middleware/auth';
 import { FINANCE_CORE_ROLES } from '../constants/accessRoles';
 
 const prisma = new PrismaClient();
@@ -23,12 +23,6 @@ const MANAGEABLE_USER_ROLES = [
   'USER',
   'MEMBER',
 ] as const;
-
-function isRootAdminEmail(email: string | undefined): boolean {
-  const rootEmail = (process.env.ROOT_ADMIN_EMAIL || '').trim().toLowerCase();
-  if (!rootEmail || !email) return false;
-  return email.trim().toLowerCase() === rootEmail;
-}
 
 function startOfMonth(d = new Date()) {
   return new Date(d.getFullYear(), d.getMonth(), 1);
@@ -174,7 +168,7 @@ const ADMIN_PORTAL_REGISTRY: Array<{
     label: 'Operations staff',
     description: 'Shared operations console',
     path: '/dashboard',
-    roles: ['USER', 'VOLUNTEER'],
+    roles: ['STAFF'],
   },
 ];
 
@@ -197,17 +191,28 @@ function summarizePortalUsers(
 
 /** /api/admin/stats */
 export const adminDashboardRouter = express.Router();
-adminDashboardRouter.get('/stats', authMiddleware, requireRole(['ADMIN']), async (_req, res) => {
+adminDashboardRouter.get(
+  '/stats',
+  authMiddleware,
+  requireRole(['ADMIN']),
+  requireRootAdmin(),
+  async (_req, res) => {
   try {
     res.json(await loadAdminStatsPayload());
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: { message: 'Failed to load admin stats' } });
   }
-});
+  }
+);
 
 /** /api/admin/overview — stats + portal registry with live user counts + recent cross-system activity */
-adminDashboardRouter.get('/overview', authMiddleware, requireRole(['ADMIN']), async (_req, res) => {
+adminDashboardRouter.get(
+  '/overview',
+  authMiddleware,
+  requireRole(['ADMIN']),
+  requireRootAdmin(),
+  async (_req, res) => {
   try {
     const [
       stats,
@@ -365,42 +370,52 @@ adminDashboardRouter.get('/overview', authMiddleware, requireRole(['ADMIN']), as
     console.error(e);
     res.status(500).json({ error: { message: 'Failed to load admin overview' } });
   }
-});
+  }
+);
 
 /** /api/admin/users/roles — list users + role assignment metadata for admin panel */
-adminDashboardRouter.get('/users/roles', authMiddleware, requireRole(['ADMIN']), async (req, res) => {
-  try {
-    const requester = req as AuthRequest;
-    const users = await prisma.user.findMany({
-      orderBy: [{ role: 'asc' }, { createdAt: 'asc' }],
-      select: {
-        id: true,
-        email: true,
-        firstName: true,
-        lastName: true,
-        role: true,
-        isActive: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
+adminDashboardRouter.get(
+  '/users/roles',
+  authMiddleware,
+  requireRole(['ADMIN']),
+  requireRootAdmin(),
+  async (_req, res) => {
+    try {
+      const users = await prisma.user.findMany({
+        orderBy: [{ role: 'asc' }, { createdAt: 'asc' }],
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          role: true,
+          isActive: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      });
 
-    res.json({
-      users,
-      availableRoles: MANAGEABLE_USER_ROLES,
-      rootAdminConfigured: !!(process.env.ROOT_ADMIN_EMAIL || '').trim(),
-      canManageAdminRole: isRootAdminEmail(requester.email),
-    });
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: { message: 'Failed to load users for role management' } });
+      res.json({
+        users,
+        availableRoles: MANAGEABLE_USER_ROLES,
+        rootAdminConfigured: !!(process.env.ROOT_ADMIN_EMAIL || '').trim(),
+        canManageAdminRole: true,
+      });
+    } catch (e) {
+      console.error(e);
+      res.status(500).json({ error: { message: 'Failed to load users for role management' } });
+    }
   }
-});
+);
 
 /** /api/admin/users/:id/role — update one user role (ADMIN changes require root admin identity). */
-adminDashboardRouter.patch('/users/:id/role', authMiddleware, requireRole(['ADMIN']), async (req, res) => {
-  try {
-    const requester = req as AuthRequest;
+adminDashboardRouter.patch(
+  '/users/:id/role',
+  authMiddleware,
+  requireRole(['ADMIN']),
+  requireRootAdmin(),
+  async (req, res) => {
+    try {
     const userId = req.params.id;
     const role = String(req.body?.role || '').trim().toUpperCase();
 
@@ -416,16 +431,7 @@ adminDashboardRouter.patch('/users/:id/role', authMiddleware, requireRole(['ADMI
       return res.status(404).json({ error: { message: 'User not found.' } });
     }
 
-    const adminRoleTouched = role === 'ADMIN' || target.role === 'ADMIN';
-    if (adminRoleTouched && !isRootAdminEmail(requester.email)) {
-      return res.status(403).json({
-        error: {
-          message:
-            'Only the root admin account configured in ROOT_ADMIN_EMAIL can grant or revoke ADMIN role.',
-        },
-      });
-    }
-
+      const requester = req as AuthRequest;
     if (requester.userId === target.id && role !== 'ADMIN') {
       return res.status(400).json({
         error: { message: 'You cannot remove your own ADMIN role from this panel.' },
@@ -450,11 +456,12 @@ adminDashboardRouter.patch('/users/:id/role', authMiddleware, requireRole(['ADMI
       message: 'User role updated successfully.',
       user: updated,
     });
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: { message: 'Failed to update user role' } });
+    } catch (e) {
+      console.error(e);
+      res.status(500).json({ error: { message: 'Failed to update user role' } });
+    }
   }
-});
+);
 
 /** /api/accountant/stats */
 export const accountantDashboardRouter = express.Router();
@@ -617,7 +624,7 @@ export const memberPortalRouter = express.Router();
 memberPortalRouter.get(
   '/me/dashboard',
   authMiddleware,
-  requireRole(['MEMBER']),
+  requireRole(['MEMBER', 'USER', 'VOLUNTEER']),
   async (req, res) => {
     try {
       const { userId } = req as AuthRequest;

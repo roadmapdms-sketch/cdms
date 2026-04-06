@@ -7,9 +7,13 @@ interface ProtectedRouteProps {
   children: React.ReactNode;
   /** If set, only these roles may view this route; others are sent to their home path. */
   allowedRoles?: readonly string[];
+  /** If true, this route is only for the env-configured root admin email. */
+  requireRootAdmin?: boolean;
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles }) => {
+const ROOT_ADMIN_EMAIL = (process.env.REACT_APP_ROOT_ADMIN_EMAIL || '').trim().toLowerCase();
+
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles, requireRootAdmin }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [allowed, setAllowed] = useState(false);
@@ -26,7 +30,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
       return;
     }
 
-    let user: { role?: string };
+    let user: { role?: string; email?: string };
     try {
       user = JSON.parse(raw);
     } catch {
@@ -44,8 +48,17 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
       return;
     }
 
+    if (requireRootAdmin && ROOT_ADMIN_EMAIL) {
+      const userEmail = (user.email || '').trim().toLowerCase();
+      if (!userEmail || userEmail !== ROOT_ADMIN_EMAIL) {
+        setAllowed(false);
+        navigate('/dashboard', { replace: true });
+        return;
+      }
+    }
+
     setAllowed(true);
-  }, [navigate, location.pathname]);
+  }, [navigate, location.pathname, requireRootAdmin]);
 
   if (!allowed) {
     return null;

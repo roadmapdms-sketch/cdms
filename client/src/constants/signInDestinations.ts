@@ -28,7 +28,7 @@ export const SIGN_IN_PORTAL_OPTIONS: {
   {
     group: 'General access',
     items: [
-      { value: '/dashboard', label: 'Operations console (staff)' },
+      { value: '/dashboard', label: 'Operations console (upgraded staff only)' },
       { value: '/user', label: 'Member portal' },
     ],
   },
@@ -42,7 +42,7 @@ export const REGISTRATION_ACCOUNT_TYPES = [
   },
   {
     value: 'USER' as const,
-    label: 'Staff / operations user',
-    description: 'General operations account until an administrator assigns a coordinator role.',
+    label: 'General user',
+    description: 'Starts in member portal until an administrator assigns an upgraded portal role.',
   },
 ] as const;

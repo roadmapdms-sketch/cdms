@@ -37,7 +37,7 @@ export function canAccessPortalPath(path: AllowedPostLoginPath, role: string): b
     case '/volunteer':
       return role === 'VOLUNTEER_COORDINATOR' || role === 'ADMIN';
     case '/user':
-      return role === 'MEMBER';
+      return role === 'MEMBER' || role === 'USER' || role === 'VOLUNTEER';
     case '/dashboard':
       return (LAYOUT_ALLOWED_ROLES as readonly string[]).includes(role);
     case '/media':

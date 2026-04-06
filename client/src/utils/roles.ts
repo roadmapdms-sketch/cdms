@@ -5,8 +5,6 @@ export const LAYOUT_ALLOWED_ROLES = [
   'PASTOR',
   'VOLUNTEER_COORDINATOR',
   'STAFF',
-  'VOLUNTEER',
-  'USER',
   'MEDIA_DEPARTMENT',
   'KITCHEN_RESTAURANT',
   'MANAGEMENT',
@@ -272,6 +270,8 @@ export function getDefaultHomePath(role: string | undefined): string {
     case 'VOLUNTEER_COORDINATOR':
       return '/volunteer';
     case 'MEMBER':
+    case 'USER':
+    case 'VOLUNTEER':
       return '/user';
     case 'MEDIA_DEPARTMENT':
       return '/media';
@@ -286,6 +286,6 @@ export function getDefaultHomePath(role: string | undefined): string {
     case 'PRAYER_LINE_COORDINATOR':
       return '/prayer-line-portal';
     default:
-      return '/dashboard';
+      return '/user';
   }
 }

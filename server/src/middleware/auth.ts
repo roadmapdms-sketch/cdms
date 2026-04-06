@@ -47,3 +47,25 @@ export const requireRole = (roles: readonly string[]) => {
     next();
   };
 };
+
+export const requireRootAdmin = () => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const r = req as AuthRequest;
+    const rootAdminEmail = (process.env.ROOT_ADMIN_EMAIL || '').trim().toLowerCase();
+
+    if (!rootAdminEmail) {
+      return res.status(503).json({
+        error: { message: 'ROOT_ADMIN_EMAIL is not configured on the server.' },
+      });
+    }
+
+    const userEmail = (r.email || '').trim().toLowerCase();
+    if (!userEmail || userEmail !== rootAdminEmail) {
+      return res.status(403).json({
+        error: { message: 'Access denied. Root admin credentials are required.' },
+      });
+    }
+
+    next();
+  };
+};
