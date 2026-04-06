@@ -37,13 +37,13 @@ export const PORTAL_DETAILS: PortalDetail[] = [
     icon: '💰',
     headline: 'Stewardship, budgets, and compliance in one place',
     summary:
-      'Manage giving records, expenses, vendors, live budget, budget planning, and builders pledges with clear approval paths.',
+      'Live budget, expenses, vendors, giving, budget planning workflow, and builders (pledges)—without unrelated ministry modules in this portal.',
     loginRedirect: '/accountant',
     highlights: [
-      'Giving, expenses, vendors, and departmental budgets',
+      'Giving & income, expenses, vendors, and live departmental budget',
       'Budget planning workflow before the live fiscal year',
-      'Builders and capital campaign tracking',
-      'Reports tied to finance and operations',
+      'Builders and capital campaign / pledge tracking',
+      'Approvals and ledger views scoped to finance work',
     ],
     accessNote:
       'Accountant and finance roles are assigned by an administrator. Self-registration starts as a general user until your role is updated.',
@@ -52,15 +52,16 @@ export const PORTAL_DETAILS: PortalDetail[] = [
     slug: 'pastor',
     label: 'Pastoral leadership',
     icon: '🙏',
-    headline: 'Pastoral care without the noise of unrelated modules',
+    headline: 'Shepherding workflows without unrelated ministry modules',
     summary:
-      'A focused portal for shepherding: members, partners, attendance, events, volunteers, prayer line, and communications—without finance screens cluttering the workspace.',
+      'Pastoral care, members, prayer line coverage, partners, and communications—this portal stays on people and care, not finance or operations consoles.',
     loginRedirect: '/pastor',
     highlights: [
-      'Member and partner context for visits and follow-up',
-      'Prayer line and pastoral care workflows',
-      'Events and volunteer touchpoints for weekend ministry',
-      'Reporting that matters to leadership, not accounting ledgers',
+      'Pastoral care records and follow-up',
+      'Members directory for visits and context',
+      'Prayer line coverage and intercessor alignment',
+      'Partners and covenant relationships',
+      'Communications to the flock',
     ],
     accessNote:
       'Pastoral and staff roles are issued by your administrator. Register first if invited, then sign in once your role is set.',

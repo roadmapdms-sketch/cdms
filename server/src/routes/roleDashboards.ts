@@ -87,14 +87,14 @@ const ADMIN_PORTAL_REGISTRY: Array<{
   {
     id: 'finance',
     label: 'Finance & accounting',
-    description: 'Budget, expenses, vendors, giving',
+    description: 'Live budget, expenses, vendors, giving, budget planning, builders',
     path: '/accountant',
     roles: ['ACCOUNTANT'],
   },
   {
     id: 'pastoral',
     label: 'Pastoral leadership',
-    description: 'Care, members, prayer coverage',
+    description: 'Pastoral care, members, prayer line coverage, partners, communications',
     path: '/pastor',
     roles: ['PASTOR', 'STAFF'],
   },

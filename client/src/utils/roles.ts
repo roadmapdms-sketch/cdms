@@ -65,6 +65,7 @@ const INDEPENDENT_PORTAL_ROLES = new Set<string>([
   'ADMIN',
   'ACCOUNTANT',
   'PASTOR',
+  'STAFF',
   'VOLUNTEER_COORDINATOR',
   'MEDIA_DEPARTMENT',
   'KITCHEN_RESTAURANT',
@@ -108,7 +109,6 @@ export function independentPortalSidebar(role: string): SidebarNavItem[] {
     case 'ACCOUNTANT':
       return [
         home,
-        OPS_HUB,
         ...modulesByHref([
           '/financial',
           '/expenses',
@@ -116,27 +116,18 @@ export function independentPortalSidebar(role: string): SidebarNavItem[] {
           '/budget',
           '/budget-planning',
           '/builders',
-          '/members',
-          '/events',
-          '/communications',
-          '/reports',
-          '/reporting-dashboard',
         ]),
       ];
     case 'PASTOR':
+    case 'STAFF':
       return [
         home,
         ...modulesByHref([
-          '/members',
-          '/partners',
-          '/attendance',
-          '/events',
-          '/communications',
-          '/volunteers',
           '/pastoral-care',
+          '/members',
           '/prayer-line',
-          '/reports',
-          '/reporting-dashboard',
+          '/partners',
+          '/communications',
         ]),
       ];
     case 'VOLUNTEER_COORDINATOR':
@@ -248,6 +239,7 @@ export function staffShellSidebarTagline(role: string | undefined): string {
     case 'ACCOUNTANT':
       return 'Finance portal';
     case 'PASTOR':
+    case 'STAFF':
       return 'Pastoral portal';
     case 'VOLUNTEER_COORDINATOR':
       return 'Volunteers portal';
@@ -275,6 +267,7 @@ export function getDefaultHomePath(role: string | undefined): string {
     case 'ACCOUNTANT':
       return '/accountant';
     case 'PASTOR':
+    case 'STAFF':
       return '/pastor';
     case 'VOLUNTEER_COORDINATOR':
       return '/volunteer';

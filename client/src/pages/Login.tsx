@@ -107,8 +107,10 @@ const Login: React.FC = () => {
       case 'MEMBER':
         navigate('/user', { replace: true });
         break;
-      case 'VOLUNTEER':
       case 'STAFF':
+        navigate('/pastor', { replace: true });
+        break;
+      case 'VOLUNTEER':
       case 'USER':
       default:
         navigate('/dashboard', { replace: true });

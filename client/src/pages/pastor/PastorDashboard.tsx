@@ -13,7 +13,6 @@ import {
 
 interface PastoralStats {
   newMembersThisWeek: number;
-  attendanceRate: number;
   prayerRequests: number;
   pastoralVisits: number;
   recentPrayerRequests: Array<{
@@ -27,7 +26,6 @@ interface PastoralStats {
 const PastorDashboard: React.FC = () => {
   const [stats, setStats] = useState<PastoralStats>({
     newMembersThisWeek: 0,
-    attendanceRate: 0,
     prayerRequests: 0,
     pastoralVisits: 0,
     recentPrayerRequests: [],
@@ -57,26 +55,22 @@ const PastorDashboard: React.FC = () => {
   }
 
   return (
-    <RoleDashboardLayout title="Pastoral leadership" roleBadge="Pastor / staff · care & engagement">
-      <DashboardSection title="Engagement snapshot">
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <RoleDashboardLayout title="Pastoral leadership" roleBadge="Pastor / staff · pastoral-only portal">
+      <DashboardSection title="Shepherding snapshot">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <StatCard label="New members (week)" value={stats.newMembersThisWeek} />
-          <StatCard label="Attendance rate" value={`${stats.attendanceRate}%`} />
-          <StatCard label="Prayer requests" value={stats.prayerRequests} />
-          <StatCard label="Pastoral visits" value={stats.pastoralVisits} />
+          <StatCard label="Prayer / care queue" value={stats.prayerRequests} />
+          <StatCard label="Pastoral touchpoints" value={stats.pastoralVisits} />
         </div>
       </DashboardSection>
 
-      <DashboardSection title="Shepherding tools">
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
-          <QuickActionButton onClick={() => navigate('/members')}>👥 Members</QuickActionButton>
+      <DashboardSection title="Pastoral modules">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
           <QuickActionButton onClick={() => navigate('/pastoral-care')}>🙏 Pastoral care</QuickActionButton>
-          <QuickActionButton onClick={() => navigate('/prayer-line')}>📞 Prayer line</QuickActionButton>
+          <QuickActionButton onClick={() => navigate('/members')}>👥 Members</QuickActionButton>
+          <QuickActionButton onClick={() => navigate('/prayer-line')}>📞 Prayer line coverage</QuickActionButton>
           <QuickActionButton onClick={() => navigate('/partners')}>🤝 Partners</QuickActionButton>
-          <QuickActionButton onClick={() => navigate('/communications')}>📧 Message flock</QuickActionButton>
-          <QuickActionButton onClick={() => navigate('/events')}>📅 Services & events</QuickActionButton>
-          <QuickActionButton onClick={() => navigate('/attendance')}>✅ Attendance</QuickActionButton>
-          <QuickActionButton onClick={() => navigate('/reporting-dashboard')}>📉 Reporting</QuickActionButton>
+          <QuickActionButton onClick={() => navigate('/communications')}>📧 Communications</QuickActionButton>
         </div>
       </DashboardSection>
 
@@ -125,10 +119,10 @@ const PastorDashboard: React.FC = () => {
           </button>
           <button
             type="button"
-            onClick={() => navigate('/reports')}
+            onClick={() => navigate('/prayer-line')}
             className="rounded-lg border border-[#c9a227]/35 px-4 py-2 text-sm text-[#f4e4a8] hover:bg-[#c9a227]/10"
           >
-            Reports
+            Prayer line roster
           </button>
         </div>
       </DataPanel>

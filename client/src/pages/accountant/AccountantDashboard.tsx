@@ -57,7 +57,7 @@ const AccountantDashboard: React.FC = () => {
   }
 
   return (
-    <RoleDashboardLayout title="Finance & accounting" roleBadge="Accountant · finance modules">
+    <RoleDashboardLayout title="Finance & accounting" roleBadge="Accountant · finance-only portal">
       <DashboardSection title="Financial overview">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           <StatCard label="Total budget" value={`₦${stats.totalBudget.toLocaleString()}`} />
@@ -67,16 +67,14 @@ const AccountantDashboard: React.FC = () => {
         </div>
       </DashboardSection>
 
-      <DashboardSection title="Ledger & tools">
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
-          <QuickActionButton onClick={() => navigate('/expenses')}>🧾 Expenses</QuickActionButton>
+      <DashboardSection title="Finance modules">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           <QuickActionButton onClick={() => navigate('/financial')}>💰 Giving & income</QuickActionButton>
+          <QuickActionButton onClick={() => navigate('/expenses')}>🧾 Expenses</QuickActionButton>
+          <QuickActionButton onClick={() => navigate('/vendors')}>🏢 Vendors</QuickActionButton>
           <QuickActionButton onClick={() => navigate('/budget')}>💹 Live budget</QuickActionButton>
           <QuickActionButton onClick={() => navigate('/budget-planning')}>📐 Budget planning</QuickActionButton>
-          <QuickActionButton onClick={() => navigate('/vendors')}>🏢 Vendors</QuickActionButton>
-          <QuickActionButton onClick={() => navigate('/reporting-dashboard')}>📉 Reporting dashboard</QuickActionButton>
-          <QuickActionButton onClick={() => navigate('/reports')}>📋 Reports library</QuickActionButton>
-          <QuickActionButton onClick={() => navigate('/builders')}>🏗️ Builders</QuickActionButton>
+          <QuickActionButton onClick={() => navigate('/builders')}>🏗️ Builders (pledges)</QuickActionButton>
         </div>
       </DashboardSection>
 
@@ -125,14 +123,7 @@ const AccountantDashboard: React.FC = () => {
             onClick={() => navigate('/financial')}
             className="rounded-lg border border-[#c9a227]/35 px-4 py-2 text-sm text-[#f4e4a8] hover:bg-[#c9a227]/10"
           >
-            All transactions
-          </button>
-          <button
-            type="button"
-            onClick={() => navigate('/reports')}
-            className="rounded-lg border border-[#c9a227]/35 px-4 py-2 text-sm text-[#f4e4a8] hover:bg-[#c9a227]/10"
-          >
-            Financial reports
+            All giving & income
           </button>
         </div>
       </DataPanel>
