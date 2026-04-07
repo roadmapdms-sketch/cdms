@@ -69,6 +69,46 @@ router.get('/dashboard', async (req, res) => {
 
     console.log('Financial summaries completed');
 
+    const now = new Date();
+    const weekStart = new Date(now);
+    weekStart.setDate(weekStart.getDate() - 7);
+
+    const [
+      totalVolunteers,
+      activeVolunteers,
+      totalPastoralCare,
+      openPastoralCare,
+      totalCommunications,
+      pendingCommunications,
+      recentAttendanceCount,
+      recentEvents,
+    ] = await Promise.all([
+      prisma.volunteerAssignment.count().catch(() => 0),
+      prisma.volunteerAssignment
+        .count({
+          where: { status: { in: ['ACTIVE', 'ASSIGNED', 'CONFIRMED'] } },
+        })
+        .catch(() => 0),
+      prisma.pastoralCareRecord.count().catch(() => 0),
+      prisma.pastoralCareRecord.count({ where: { status: 'OPEN' } }).catch(() => 0),
+      prisma.communication.count().catch(() => 0),
+      prisma.communication.count({ where: { status: 'PENDING' } }).catch(() => 0),
+      prisma.attendance.count({ where: { checkIn: { gte: weekStart } } }).catch(() => 0),
+      prisma.event
+        .findMany({
+          where: { startDate: { gte: now }, status: { not: 'CANCELLED' } },
+          orderBy: { startDate: 'asc' },
+          take: 6,
+          select: { id: true, title: true, startDate: true, type: true, status: true },
+        })
+        .catch(() => [] as { id: string; title: string; startDate: Date; type: string; status: string }[]),
+    ]);
+
+    const volunteerEngagementRate =
+      totalMembers > 0
+        ? `${Math.min(100, Math.round((activeVolunteers / Math.max(1, totalMembers)) * 100)).toFixed(1)}%`
+        : '0%';
+
     const response = {
       overview: {
         totalMembers,
@@ -76,9 +116,9 @@ router.get('/dashboard', async (req, res) => {
         memberEngagementRate: totalMembers > 0 ? '100.0%' : '0%',
         totalEvents,
         upcomingEvents,
-        totalVolunteers: 0, // Simplified for now
-        activeVolunteers: 0,
-        volunteerEngagementRate: '0%'
+        totalVolunteers,
+        activeVolunteers,
+        volunteerEngagementRate,
       },
       financial: {
         totalGiving: totalGivingResult._sum.amount || 0,
@@ -86,7 +126,7 @@ router.get('/dashboard', async (req, res) => {
         totalBudget: 0,
         totalSpent: 0,
         budgetUtilizationRate: '0%',
-        pendingExpenses: 0
+        pendingExpenses: 0,
       },
       operations: {
         totalInventory,
@@ -95,9 +135,19 @@ router.get('/dashboard', async (req, res) => {
         totalVendors,
         activeVendors: totalVendors,
         vendorActivationRate: totalVendors > 0 ? '100.0%' : '0%',
-        totalPastoralCare: 0,
-        openPastoralCare: 0
-      }
+        totalPastoralCare,
+        openPastoralCare,
+        totalCommunications,
+        pendingCommunications,
+        recentAttendanceCount,
+      },
+      recentEvents: recentEvents.map((e) => ({
+        id: e.id,
+        title: e.title,
+        startDate: e.startDate.toISOString(),
+        type: e.type,
+        status: e.status,
+      })),
     };
 
     console.log('Dashboard response prepared');

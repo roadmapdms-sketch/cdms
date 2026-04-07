@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from '../../config/api';
 import {
@@ -7,6 +7,7 @@ import {
   DashboardSection,
   DataPanel,
   RoleDashboardLoading,
+  FetchNotice,
 } from '../../components/RoleDashboardLayout';
 
 interface MemberData {
@@ -38,23 +39,27 @@ const MemberDashboard: React.FC = () => {
     attendanceRecord: { monthly: 0, yearly: 0 },
   });
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchMemberData = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_BASE_URL}/member/me/dashboard`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setMemberData(response.data);
+      setError(null);
+    } catch (err) {
+      console.error('Failed to fetch member data:', err);
+      setError('Member details failed to load. Retry to refresh your portal.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    const fetchMemberData = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        const response = await axios.get(`${API_BASE_URL}/member/me/dashboard`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setMemberData(response.data);
-      } catch (error) {
-        console.error('Failed to fetch member data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchMemberData();
-  }, []);
+  }, [fetchMemberData]);
 
   if (loading) {
     return <RoleDashboardLoading showStaffSidebar={false} />;
@@ -62,11 +67,12 @@ const MemberDashboard: React.FC = () => {
 
   return (
     <RoleDashboardLayout title="Member portal" roleBadge="Member access" showStaffSidebar={false}>
+      <FetchNotice error={error} onRetry={fetchMemberData} />
       <DashboardSection title="Welcome">
         <div className="rounded-2xl border border-[#c9a227]/25 bg-gradient-to-br from-zinc-900/80 to-black/60 p-6 sm:p-8">
           <h2 className="text-2xl font-semibold text-[#f5e6b8]">Welcome, {memberData.name || 'friend'}.</h2>
           <p className="mt-2 max-w-2xl text-sm text-zinc-400">
-            We are glad you are part of Roadmap Ministry International. Below is a snapshot of your involvement.
+            This is your personal member space. It only shows your own participation and stewardship details.
             {memberData.joinDate ? (
               <span className="mt-2 block text-zinc-500">Member since {memberData.joinDate}</span>
             ) : null}
@@ -74,12 +80,12 @@ const MemberDashboard: React.FC = () => {
         </div>
       </DashboardSection>
 
-      <DashboardSection title="At a glance">
+      <DashboardSection title="Your summary">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard label="Giving this month" value={`₦${memberData.givingHistory.monthly.toLocaleString()}`} />
           <StatCard label="Giving this year" value={`₦${memberData.givingHistory.yearly.toLocaleString()}`} />
-          <StatCard label="Attendance (month)" value={`${memberData.attendanceRecord.monthly}%`} />
-          <StatCard label="Attendance (year)" value={`${memberData.attendanceRecord.yearly}%`} />
+          <StatCard label="Attendance this month" value={memberData.attendanceRecord.monthly} />
+          <StatCard label="Attendance this year" value={memberData.attendanceRecord.yearly} />
         </div>
       </DashboardSection>
 
@@ -106,18 +112,13 @@ const MemberDashboard: React.FC = () => {
           )}
         </DataPanel>
 
-        <DataPanel title="Your stewardship">
+        <DataPanel title="Personal notes">
           <p className="text-sm text-zinc-400">
-            Thank you for your faithfulness. For detailed statements or to update recurring giving, contact your
-            church finance office—they can also help with event registration and small groups.
+            Need updates to your profile, giving statement, or service schedule? Please contact your ministry office.
           </p>
           <div className="mt-4 space-y-2 text-sm text-zinc-500">
-            <div className="flex justify-between border-t border-zinc-800 pt-3">
-              <span>Progress toward annual goal (illustrative)</span>
-              <span className="text-[#c9a227]">75%</span>
-            </div>
-            <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-800">
-              <div className="h-full w-[75%] rounded-full bg-gradient-to-r from-[#c9a227] to-[#e8c547]" />
+            <div className="border-t border-zinc-800 pt-3">
+              This portal does not include admin tools, role management, or operations controls.
             </div>
           </div>
         </DataPanel>

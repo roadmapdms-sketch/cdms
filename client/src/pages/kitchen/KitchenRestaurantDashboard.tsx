@@ -1,7 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { API_BASE_URL } from '../../config/api';
 import {
   RoleDashboardLayout,
   StatCard,
@@ -9,55 +7,17 @@ import {
   QuickActionButton,
   DataPanel,
   RoleDashboardLoading,
+  FetchNotice,
 } from '../../components/RoleDashboardLayout';
-
-interface KitchenStats {
-  overview: {
-    totalEvents: number;
-    upcomingEvents: number;
-  };
-  operations: {
-    totalInventory: number;
-    availableInventory: number;
-  };
-}
-
-const emptyStats: KitchenStats = {
-  overview: { totalEvents: 0, upcomingEvents: 0 },
-  operations: { totalInventory: 0, availableInventory: 0 },
-};
+import { useReportsDashboardStats } from '../../hooks/useReportsDashboardStats';
+import { PortalDashboardToolbar } from '../../components/PortalDashboardToolbar';
+import { UpcomingEventsPanel } from '../../components/UpcomingEventsPanel';
 
 const KitchenRestaurantDashboard: React.FC = () => {
-  const [stats, setStats] = useState<KitchenStats>(emptyStats);
-  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        const res = await axios.get(`${API_BASE_URL}/reports/dashboard?period=current`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const d = res.data;
-        setStats({
-          overview: {
-            totalEvents: d?.overview?.totalEvents ?? 0,
-            upcomingEvents: d?.overview?.upcomingEvents ?? 0,
-          },
-          operations: {
-            totalInventory: d?.operations?.totalInventory ?? 0,
-            availableInventory: d?.operations?.availableInventory ?? 0,
-          },
-        });
-      } catch {
-        setStats(emptyStats);
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, []);
+  const { period, setPeriod, data, loading, error, retry } = useReportsDashboardStats();
+  const o = data?.overview;
+  const op = data?.operations;
 
   if (loading) {
     return <RoleDashboardLoading />;
@@ -65,12 +25,15 @@ const KitchenRestaurantDashboard: React.FC = () => {
 
   return (
     <RoleDashboardLayout title="Kitchen & restaurant" roleBadge="Hospitality & food service">
+      <FetchNotice error={error} onRetry={retry} />
+      <PortalDashboardToolbar period={period} onPeriodChange={setPeriod} onRefresh={retry} />
+
       <DashboardSection title="Service snapshot">
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <StatCard label="Events on file" value={stats.overview.totalEvents} />
-          <StatCard label="Upcoming (catering windows)" value={stats.overview.upcomingEvents} />
-          <StatCard label="Inventory SKUs" value={stats.operations.totalInventory} />
-          <StatCard label="Available stock lines" value={stats.operations.availableInventory} />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <StatCard label="Events on file" value={o?.totalEvents ?? 0} />
+          <StatCard label="Upcoming (catering windows)" value={o?.upcomingEvents ?? 0} />
+          <StatCard label="Inventory SKUs" value={op?.totalInventory ?? 0} />
+          <StatCard label="Serving volunteers (active)" value={o?.activeVolunteers ?? 0} />
         </div>
       </DashboardSection>
 
@@ -85,11 +48,30 @@ const KitchenRestaurantDashboard: React.FC = () => {
         </div>
       </DashboardSection>
 
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <UpcomingEventsPanel events={data?.recentEvents} />
+        <DataPanel title="Hospitality context">
+          <p className="text-sm text-zinc-400">
+            Align meal prep and service windows with the upcoming event list. Volunteer counts reflect active serving
+            assignments across ministries.
+          </p>
+          <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
+            <div>
+              <dt className="text-xs uppercase tracking-wider text-zinc-500">Attendance (7d)</dt>
+              <dd className="mt-1 font-semibold tabular-nums text-[#f4e4a8]">{op?.recentAttendanceCount ?? 0}</dd>
+            </div>
+            <div>
+              <dt className="text-xs uppercase tracking-wider text-zinc-500">Vendors (active)</dt>
+              <dd className="mt-1 font-semibold tabular-nums text-[#f4e4a8]">{op?.activeVendors ?? 0}</dd>
+            </div>
+          </dl>
+        </DataPanel>
+      </div>
+
       <DataPanel title="Operations notes">
         <p className="text-sm leading-relaxed text-zinc-400">
-          Plan around Events for special meals; use Inventory for dry goods and disposables. Finance modules (expenses,
-          vendors) stay restricted to authorized finance roles—request an accountant or admin for purchase tracking if
-          needed.
+          Plan around Events for special meals; use Inventory for dry goods and disposables. Finance modules stay
+          restricted to authorized finance roles.
         </p>
       </DataPanel>
     </RoleDashboardLayout>

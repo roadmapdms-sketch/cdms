@@ -215,3 +215,25 @@ export function DataPanel({ title, children }: { title: string; children: React.
     </div>
   );
 }
+
+export function FetchNotice({
+  error,
+  onRetry,
+}: {
+  error: string | null;
+  onRetry: () => void;
+}) {
+  if (!error) return null;
+  return (
+    <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-500/35 bg-amber-950/30 px-4 py-3 text-sm text-amber-100">
+      <span>{error}</span>
+      <button
+        type="button"
+        onClick={onRetry}
+        className="rounded-lg border border-amber-300/40 px-3 py-1.5 text-xs font-semibold text-amber-100 hover:bg-amber-400/10"
+      >
+        Retry fetch
+      </button>
+    </div>
+  );
+}

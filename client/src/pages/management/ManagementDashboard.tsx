@@ -1,7 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { API_BASE_URL } from '../../config/api';
 import {
   RoleDashboardLayout,
   StatCard,
@@ -9,48 +7,18 @@ import {
   QuickActionButton,
   DataPanel,
   RoleDashboardLoading,
+  FetchNotice,
 } from '../../components/RoleDashboardLayout';
-
-interface MgmtStats {
-  overview: {
-    totalMembers: number;
-    activeMembers: number;
-    upcomingEvents: number;
-  };
-}
-
-const emptyStats: MgmtStats = {
-  overview: { totalMembers: 0, activeMembers: 0, upcomingEvents: 0 },
-};
+import { useReportsDashboardStats } from '../../hooks/useReportsDashboardStats';
+import { PortalDashboardToolbar } from '../../components/PortalDashboardToolbar';
+import { UpcomingEventsPanel } from '../../components/UpcomingEventsPanel';
 
 const ManagementDashboard: React.FC = () => {
-  const [stats, setStats] = useState<MgmtStats>(emptyStats);
-  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        const res = await axios.get(`${API_BASE_URL}/reports/dashboard?period=current`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const d = res.data;
-        setStats({
-          overview: {
-            totalMembers: d?.overview?.totalMembers ?? 0,
-            activeMembers: d?.overview?.activeMembers ?? 0,
-            upcomingEvents: d?.overview?.upcomingEvents ?? 0,
-          },
-        });
-      } catch {
-        setStats(emptyStats);
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, []);
+  const { period, setPeriod, data, loading, error, retry } = useReportsDashboardStats();
+  const o = data?.overview;
+  const f = data?.financial;
+  const op = data?.operations;
 
   if (loading) {
     return <RoleDashboardLoading />;
@@ -58,11 +26,23 @@ const ManagementDashboard: React.FC = () => {
 
   return (
     <RoleDashboardLayout title="Management" roleBadge="Leadership overview">
+      <FetchNotice error={error} onRetry={retry} />
+      <PortalDashboardToolbar period={period} onPeriodChange={setPeriod} onRefresh={retry} />
+
       <DashboardSection title="Organizational snapshot">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <StatCard label="Members on file" value={o?.totalMembers ?? 0} />
+          <StatCard label="Active members" value={o?.activeMembers ?? 0} />
+          <StatCard label="Upcoming events" value={o?.upcomingEvents ?? 0} />
+          <StatCard label="Open pastoral items" value={op?.openPastoralCare ?? 0} />
+        </div>
+      </DashboardSection>
+
+      <DashboardSection title="Financial signal (period)">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <StatCard label="Members on file" value={stats.overview.totalMembers} />
-          <StatCard label="Active members" value={stats.overview.activeMembers} />
-          <StatCard label="Upcoming events" value={stats.overview.upcomingEvents} />
+          <StatCard label="Total giving recorded" value={`₦${(f?.totalGiving ?? 0).toLocaleString()}`} />
+          <StatCard label="Total expenses" value={`₦${(f?.totalExpenses ?? 0).toLocaleString()}`} />
+          <StatCard label="Volunteer engagement" value={o?.volunteerEngagementRate ?? '—'} />
         </div>
       </DashboardSection>
 
@@ -77,12 +57,32 @@ const ManagementDashboard: React.FC = () => {
         </div>
       </DashboardSection>
 
-      <DataPanel title="Governance">
-        <p className="text-sm leading-relaxed text-zinc-400">
-          Use Reporting dashboard and Reports for cross-department KPIs. Detailed financial ledgers remain in the
-          finance portal for accountants and administrators.
-        </p>
-      </DataPanel>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <UpcomingEventsPanel events={data?.recentEvents} />
+        <DataPanel title="Operations health">
+          <dl className="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <dt className="text-xs uppercase tracking-wider text-zinc-500">Volunteers (active)</dt>
+              <dd className="mt-1 font-semibold text-[#f4e4a8]">{o?.activeVolunteers ?? 0}</dd>
+            </div>
+            <div>
+              <dt className="text-xs uppercase tracking-wider text-zinc-500">Check-ins (7 days)</dt>
+              <dd className="mt-1 font-semibold text-[#f4e4a8]">{op?.recentAttendanceCount ?? 0}</dd>
+            </div>
+            <div>
+              <dt className="text-xs uppercase tracking-wider text-zinc-500">Pastoral records</dt>
+              <dd className="mt-1 font-semibold text-[#f4e4a8]">{op?.totalPastoralCare ?? 0}</dd>
+            </div>
+            <div>
+              <dt className="text-xs uppercase tracking-wider text-zinc-500">Pending comms</dt>
+              <dd className="mt-1 font-semibold text-[#f4e4a8]">{op?.pendingCommunications ?? 0}</dd>
+            </div>
+          </dl>
+          <p className="mt-4 text-xs leading-relaxed text-zinc-500">
+            Detailed ledgers and approvals live in the finance portal for authorized roles.
+          </p>
+        </DataPanel>
+      </div>
     </RoleDashboardLayout>
   );
 };

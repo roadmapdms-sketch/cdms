@@ -1,7 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { API_BASE_URL } from '../../config/api';
 import {
   RoleDashboardLayout,
   StatCard,
@@ -9,47 +7,17 @@ import {
   QuickActionButton,
   DataPanel,
   RoleDashboardLoading,
+  FetchNotice,
 } from '../../components/RoleDashboardLayout';
+import { useReportsDashboardStats } from '../../hooks/useReportsDashboardStats';
+import { PortalDashboardToolbar } from '../../components/PortalDashboardToolbar';
+import { UpcomingEventsPanel } from '../../components/UpcomingEventsPanel';
 
-interface PartnersPortalStats {
-  overview: {
-    totalMembers: number;
-    activeMembers: number;
-  };
-}
-
-const emptyStats: PartnersPortalStats = {
-  overview: { totalMembers: 0, activeMembers: 0 },
-};
-
-/** Standalone home for ministry partners leads — module workspace lives at `/partners`. */
 const PartnersPortalDashboard: React.FC = () => {
-  const [stats, setStats] = useState<PartnersPortalStats>(emptyStats);
-  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        const res = await axios.get(`${API_BASE_URL}/reports/dashboard?period=current`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const d = res.data;
-        setStats({
-          overview: {
-            totalMembers: d?.overview?.totalMembers ?? 0,
-            activeMembers: d?.overview?.activeMembers ?? 0,
-          },
-        });
-      } catch {
-        setStats(emptyStats);
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, []);
+  const { period, setPeriod, data, loading, error, retry } = useReportsDashboardStats();
+  const o = data?.overview;
+  const op = data?.operations;
 
   if (loading) {
     return <RoleDashboardLoading />;
@@ -57,10 +25,15 @@ const PartnersPortalDashboard: React.FC = () => {
 
   return (
     <RoleDashboardLayout title="Ministry partners" roleBadge="Partners coordinator">
+      <FetchNotice error={error} onRetry={retry} />
+      <PortalDashboardToolbar period={period} onPeriodChange={setPeriod} onRefresh={retry} />
+
       <DashboardSection title="Relationship context">
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <StatCard label="Members on file" value={stats.overview.totalMembers} />
-          <StatCard label="Active members" value={stats.overview.activeMembers} />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <StatCard label="Members on file" value={o?.totalMembers ?? 0} />
+          <StatCard label="Active members" value={o?.activeMembers ?? 0} />
+          <StatCard label="Open pastoral items" value={op?.openPastoralCare ?? 0} />
+          <StatCard label="Upcoming events" value={o?.upcomingEvents ?? 0} />
         </div>
       </DashboardSection>
 
@@ -75,11 +48,34 @@ const PartnersPortalDashboard: React.FC = () => {
         </div>
       </DashboardSection>
 
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <UpcomingEventsPanel events={data?.recentEvents} />
+        <DataPanel title="Engagement signals">
+          <dl className="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <dt className="text-xs uppercase tracking-wider text-zinc-500">Pastoral records</dt>
+              <dd className="mt-1 font-semibold text-[#f4e4a8]">{op?.totalPastoralCare ?? 0}</dd>
+            </div>
+            <div>
+              <dt className="text-xs uppercase tracking-wider text-zinc-500">Pending comms</dt>
+              <dd className="mt-1 font-semibold text-[#f4e4a8]">{op?.pendingCommunications ?? 0}</dd>
+            </div>
+            <div>
+              <dt className="text-xs uppercase tracking-wider text-zinc-500">Active volunteers</dt>
+              <dd className="mt-1 font-semibold text-[#f4e4a8]">{o?.activeVolunteers ?? 0}</dd>
+            </div>
+            <div>
+              <dt className="text-xs uppercase tracking-wider text-zinc-500">Volunteer pool</dt>
+              <dd className="mt-1 font-semibold text-[#f4e4a8]">{o?.totalVolunteers ?? 0}</dd>
+            </div>
+          </dl>
+        </DataPanel>
+      </div>
+
       <DataPanel title="Focus">
         <p className="text-sm leading-relaxed text-zinc-400">
-          Covenant partners, organizations, and strategic relationships are maintained in the{' '}
-          <strong className="text-[#e8c547]">Partners</strong> module. Use Communications for renewals and Events for
-          partner gatherings.
+          Covenant partners and organizations live in the <strong className="text-[#e8c547]">Partners</strong> module.
+          Use Communications for renewals and Events for partner gatherings.
         </p>
       </DataPanel>
     </RoleDashboardLayout>

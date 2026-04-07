@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { API_BASE_URL } from '../../config/api';
@@ -9,6 +9,7 @@ import {
   QuickActionButton,
   DataPanel,
   RoleDashboardLoading,
+  FetchNotice,
 } from '../../components/RoleDashboardLayout';
 
 interface VolunteerStats {
@@ -33,24 +34,28 @@ const VolunteerDashboard: React.FC = () => {
     currentOpportunities: [],
   });
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchVolunteerStats = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        const response = await axios.get(`${API_BASE_URL}/volunteer/stats`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setStats(response.data);
-      } catch (error) {
-        console.error('Failed to fetch volunteer stats:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchVolunteerStats();
+  const fetchVolunteerStats = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_BASE_URL}/volunteer/stats`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setStats(response.data);
+      setError(null);
+    } catch (err) {
+      console.error('Failed to fetch volunteer stats:', err);
+      setError('Volunteer data failed to load. Retry to refresh this dashboard.');
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchVolunteerStats();
+  }, [fetchVolunteerStats]);
 
   if (loading) {
     return <RoleDashboardLoading />;
@@ -58,6 +63,7 @@ const VolunteerDashboard: React.FC = () => {
 
   return (
     <RoleDashboardLayout title="Volunteer coordination" roleBadge="Volunteer coordinator">
+      <FetchNotice error={error} onRetry={fetchVolunteerStats} />
       <DashboardSection title="Serving snapshot">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           <StatCard label="Active volunteers" value={stats.activeVolunteers} />

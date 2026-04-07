@@ -94,6 +94,7 @@ const AdminDashboard: React.FC = () => {
   const [roleNote, setRoleNote] = useState<string | null>(null);
   const [canManageAdminRole, setCanManageAdminRole] = useState(false);
   const [rootAdminConfigured, setRootAdminConfigured] = useState(false);
+  const [rolesLastLoadedAt, setRolesLastLoadedAt] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const loadOverview = useCallback(async () => {
@@ -146,6 +147,7 @@ const AdminDashboard: React.FC = () => {
       setDraftRoles(initialDrafts);
       setCanManageAdminRole(Boolean(res.data?.canManageAdminRole));
       setRootAdminConfigured(Boolean(res.data?.rootAdminConfigured));
+      setRolesLastLoadedAt(new Date().toISOString());
       setRoleNote(null);
     } catch (err: any) {
       setRoleNote(err?.response?.data?.error?.message || 'Could not load role management users.');
@@ -180,6 +182,14 @@ const AdminDashboard: React.FC = () => {
     loadOverview();
     loadRoleUsers();
   }, [loadOverview, loadRoleUsers]);
+
+  useEffect(() => {
+    const onFocus = () => {
+      loadRoleUsers();
+    };
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
+  }, [loadRoleUsers]);
 
   if (loading) {
     return <RoleDashboardLoading />;
@@ -357,10 +367,25 @@ const AdminDashboard: React.FC = () => {
 
       <DashboardSection title="User role management">
         <DataPanel title="Assign portal access roles">
-          <p className="mb-4 max-w-4xl text-sm text-zinc-500">
-            Update user portal roles here. ADMIN grants and revocations are restricted to the root admin account
-            configured in environment variables.
-          </p>
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <p className="max-w-4xl text-sm text-zinc-500">
+              Update user portal roles here. ADMIN grants and revocations are restricted to the root admin account
+              configured in environment variables.
+            </p>
+            <button
+              type="button"
+              onClick={() => loadRoleUsers()}
+              className="rounded-lg border border-[#c9a227]/35 px-3 py-1.5 text-xs font-semibold text-[#f4e4a8] hover:bg-[#c9a227]/10"
+            >
+              Refresh users
+            </button>
+          </div>
+          {rolesLastLoadedAt ? (
+            <p className="mb-4 text-xs text-zinc-500">
+              Showing {roleUsers.length} users · last refreshed{' '}
+              {new Date(rolesLastLoadedAt).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
+            </p>
+          ) : null}
           {!rootAdminConfigured ? (
             <p className="mb-4 rounded-lg border border-amber-500/30 bg-amber-950/30 px-4 py-2 text-sm text-amber-100/90">
               ROOT_ADMIN_EMAIL is not configured on the server. ADMIN role changes are locked.

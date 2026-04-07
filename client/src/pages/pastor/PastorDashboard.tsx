@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { API_BASE_URL } from '../../config/api';
@@ -9,6 +9,7 @@ import {
   QuickActionButton,
   DataPanel,
   RoleDashboardLoading,
+  FetchNotice,
 } from '../../components/RoleDashboardLayout';
 
 interface PastoralStats {
@@ -31,24 +32,28 @@ const PastorDashboard: React.FC = () => {
     recentPrayerRequests: [],
   });
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchPastoralStats = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        const response = await axios.get(`${API_BASE_URL}/pastor/stats`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setStats(response.data);
-      } catch (error) {
-        console.error('Failed to fetch pastoral stats:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchPastoralStats();
+  const fetchPastoralStats = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_BASE_URL}/pastor/stats`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setStats(response.data);
+      setError(null);
+    } catch (err) {
+      console.error('Failed to fetch pastoral stats:', err);
+      setError('Pastoral metrics failed to load. Retry to refresh this dashboard.');
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchPastoralStats();
+  }, [fetchPastoralStats]);
 
   if (loading) {
     return <RoleDashboardLoading />;
@@ -56,6 +61,7 @@ const PastorDashboard: React.FC = () => {
 
   return (
     <RoleDashboardLayout title="Pastoral leadership" roleBadge="Pastor / staff · pastoral-only portal">
+      <FetchNotice error={error} onRetry={fetchPastoralStats} />
       <DashboardSection title="Shepherding snapshot">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <StatCard label="New members (week)" value={stats.newMembersThisWeek} />

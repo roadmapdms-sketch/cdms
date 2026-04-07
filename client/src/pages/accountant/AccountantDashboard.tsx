@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { API_BASE_URL } from '../../config/api';
@@ -9,6 +9,7 @@ import {
   QuickActionButton,
   DataPanel,
   RoleDashboardLoading,
+  FetchNotice,
 } from '../../components/RoleDashboardLayout';
 
 interface FinancialStats {
@@ -33,24 +34,28 @@ const AccountantDashboard: React.FC = () => {
     recentTransactions: [],
   });
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchFinancialStats = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        const response = await axios.get(`${API_BASE_URL}/accountant/stats`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setStats(response.data);
-      } catch (error) {
-        console.error('Failed to fetch financial stats:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchFinancialStats();
+  const fetchFinancialStats = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_BASE_URL}/accountant/stats`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setStats(response.data);
+      setError(null);
+    } catch (err) {
+      console.error('Failed to fetch financial stats:', err);
+      setError('Finance data failed to load. Retry to refresh this dashboard.');
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchFinancialStats();
+  }, [fetchFinancialStats]);
 
   if (loading) {
     return <RoleDashboardLoading />;
@@ -58,6 +63,7 @@ const AccountantDashboard: React.FC = () => {
 
   return (
     <RoleDashboardLayout title="Finance & accounting" roleBadge="Accountant · finance-only portal">
+      <FetchNotice error={error} onRetry={fetchFinancialStats} />
       <DashboardSection title="Financial overview">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           <StatCard label="Total budget" value={`₦${stats.totalBudget.toLocaleString()}`} />
