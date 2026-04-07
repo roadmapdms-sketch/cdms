@@ -6,6 +6,7 @@ import { RMI_HERO_LOGO_URL } from '../constants/branding';
 import { SIGN_IN_PORTAL_OPTIONS } from '../constants/signInDestinations';
 import type { AllowedPostLoginPath } from '../utils/allowedRedirects';
 import { getSafeRedirectParam, canAccessPortalPath } from '../utils/allowedRedirects';
+import { getDefaultHomePath } from '../utils/roles';
 
 interface LoginFormData {
   email: string;
@@ -73,49 +74,7 @@ const Login: React.FC = () => {
       navigate(destinationAfterLogin, { replace: true });
       return;
     }
-    switch (role) {
-      case 'ADMIN':
-        navigate('/admin', { replace: true });
-        break;
-      case 'ACCOUNTANT':
-        navigate('/accountant', { replace: true });
-        break;
-      case 'PASTOR':
-        navigate('/pastor', { replace: true });
-        break;
-      case 'VOLUNTEER_COORDINATOR':
-        navigate('/volunteer', { replace: true });
-        break;
-      case 'MEDIA_DEPARTMENT':
-        navigate('/media', { replace: true });
-        break;
-      case 'KITCHEN_RESTAURANT':
-        navigate('/kitchen', { replace: true });
-        break;
-      case 'MANAGEMENT':
-        navigate('/management', { replace: true });
-        break;
-      case 'USHER_MANAGEMENT':
-        navigate('/ushers', { replace: true });
-        break;
-      case 'PARTNERS_COORDINATOR':
-        navigate('/ministry-partners', { replace: true });
-        break;
-      case 'PRAYER_LINE_COORDINATOR':
-        navigate('/prayer-line-portal', { replace: true });
-        break;
-      case 'MEMBER':
-        navigate('/user', { replace: true });
-        break;
-      case 'STAFF':
-        navigate('/pastor', { replace: true });
-        break;
-      case 'VOLUNTEER':
-      case 'USER':
-      default:
-        navigate('/user', { replace: true });
-        break;
-    }
+    navigate(getDefaultHomePath(role), { replace: true });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
