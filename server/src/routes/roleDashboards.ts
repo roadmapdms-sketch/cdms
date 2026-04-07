@@ -2,6 +2,7 @@ import express from 'express';
 import { PrismaClient } from '@prisma/client';
 import { authMiddleware, requireRole, requireRootAdmin, AuthRequest } from '../middleware/auth';
 import { FINANCE_CORE_ROLES } from '../constants/accessRoles';
+import { syncUsersToMembers } from '../services/syncUsersToMembers';
 
 const prisma = new PrismaClient();
 
@@ -459,6 +460,32 @@ adminDashboardRouter.patch(
     } catch (e) {
       console.error(e);
       res.status(500).json({ error: { message: 'Failed to update user role' } });
+    }
+  }
+);
+
+/**
+ * POST /api/admin/sync/users-to-members
+ * One-time / maintenance: create Member rows for Users not yet in the directory.
+ * Root admin only (same as role management).
+ */
+adminDashboardRouter.post(
+  '/sync/users-to-members',
+  authMiddleware,
+  requireRole(['ADMIN']),
+  requireRootAdmin(),
+  async (_req, res) => {
+    try {
+      const result = await syncUsersToMembers(prisma);
+      res.json({
+        message: 'Sync finished.',
+        created: result.created,
+        skipped: result.skipped,
+        errors: result.errors,
+      });
+    } catch (e) {
+      console.error(e);
+      res.status(500).json({ error: { message: 'Failed to sync users to members' } });
     }
   }
 );

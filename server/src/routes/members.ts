@@ -32,8 +32,10 @@ router.get('/', async (req, res) => {
       where.status = status;
     }
 
-    const [members, total] = await Promise.all([
-      prisma.member.findMany({
+    let members: any[] = [];
+    const total = await prisma.member.count({ where });
+    try {
+      members = await prisma.member.findMany({
         where,
         skip,
         take: limit,
@@ -41,13 +43,21 @@ router.get('/', async (req, res) => {
         include: {
           family: {
             include: {
-              family: true
-            }
-          }
-        }
-      }),
-      prisma.member.count({ where })
-    ]);
+              family: true,
+            },
+          },
+        },
+      });
+    } catch (e) {
+      // Fallback for environments where family relation/table is not yet migrated.
+      console.warn('Members fetch with family include failed; retrying without family relation.', e);
+      members = await prisma.member.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+      });
+    }
 
     res.json({
       members,
