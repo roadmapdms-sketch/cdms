@@ -309,8 +309,11 @@ exports.adminDashboardRouter.get('/overview', auth_1.authMiddleware, (0, auth_1.
     }
 });
 /** /api/admin/users/roles — list users + role assignment metadata for admin panel */
-exports.adminDashboardRouter.get('/users/roles', auth_1.authMiddleware, (0, auth_1.requireRole)(['ADMIN']), (0, auth_1.requireRootAdmin)(), async (_req, res) => {
+exports.adminDashboardRouter.get('/users/roles', auth_1.authMiddleware, (0, auth_1.requireRole)(['ADMIN']), async (req, res) => {
     try {
+        const rootAdminEmail = (process.env.ROOT_ADMIN_EMAIL || '').trim().toLowerCase();
+        const requesterEmail = ((req.email || '').trim()).toLowerCase();
+        const canManageAdminRole = !!rootAdminEmail && requesterEmail === rootAdminEmail;
         const users = await prisma.user.findMany({
             orderBy: [{ role: 'asc' }, { createdAt: 'asc' }],
             select: {
@@ -328,7 +331,7 @@ exports.adminDashboardRouter.get('/users/roles', auth_1.authMiddleware, (0, auth
             users,
             availableRoles: MANAGEABLE_USER_ROLES,
             rootAdminConfigured: !!(process.env.ROOT_ADMIN_EMAIL || '').trim(),
-            canManageAdminRole: true,
+            canManageAdminRole,
         });
     }
     catch (e) {

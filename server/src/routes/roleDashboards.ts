@@ -379,9 +379,12 @@ adminDashboardRouter.get(
   '/users/roles',
   authMiddleware,
   requireRole(['ADMIN']),
-  requireRootAdmin(),
-  async (_req, res) => {
+  async (req, res) => {
     try {
+      const rootAdminEmail = (process.env.ROOT_ADMIN_EMAIL || '').trim().toLowerCase();
+      const requesterEmail = (((req as AuthRequest).email || '').trim()).toLowerCase();
+      const canManageAdminRole = !!rootAdminEmail && requesterEmail === rootAdminEmail;
+
       const users = await prisma.user.findMany({
         orderBy: [{ role: 'asc' }, { createdAt: 'asc' }],
         select: {
@@ -400,7 +403,7 @@ adminDashboardRouter.get(
         users,
         availableRoles: MANAGEABLE_USER_ROLES,
         rootAdminConfigured: !!(process.env.ROOT_ADMIN_EMAIL || '').trim(),
-        canManageAdminRole: true,
+        canManageAdminRole,
       });
     } catch (e) {
       console.error(e);
