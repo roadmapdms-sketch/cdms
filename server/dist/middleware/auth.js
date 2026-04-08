@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.requireRole = exports.authMiddleware = void 0;
+exports.requireRootAdmin = exports.requireRole = exports.authMiddleware = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const authMiddleware = async (req, res, next) => {
     try {
@@ -42,4 +42,23 @@ const requireRole = (roles) => {
     };
 };
 exports.requireRole = requireRole;
+const requireRootAdmin = () => {
+    return (req, res, next) => {
+        const r = req;
+        const rootAdminEmail = (process.env.ROOT_ADMIN_EMAIL || '').trim().toLowerCase();
+        if (!rootAdminEmail) {
+            return res.status(503).json({
+                error: { message: 'ROOT_ADMIN_EMAIL is not configured on the server.' },
+            });
+        }
+        const userEmail = (r.email || '').trim().toLowerCase();
+        if (!userEmail || userEmail !== rootAdminEmail) {
+            return res.status(403).json({
+                error: { message: 'Access denied. Root admin credentials are required.' },
+            });
+        }
+        next();
+    };
+};
+exports.requireRootAdmin = requireRootAdmin;
 //# sourceMappingURL=auth.js.map

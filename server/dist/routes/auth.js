@@ -125,6 +125,22 @@ router.post('/register', async (req, res) => {
                 createdAt: true
             }
         });
+        // Keep directory in sync: self-service registrations should appear in Members.
+        // If a member with this email already exists, do not duplicate.
+        if (email) {
+            const existingMember = await prisma.member.findUnique({ where: { email } });
+            if (!existingMember) {
+                await prisma.member.create({
+                    data: {
+                        firstName,
+                        lastName,
+                        email,
+                        status: 'ACTIVE',
+                        membershipDate: new Date(),
+                    },
+                });
+            }
+        }
         // Generate JWT token
         const jwtSecret = process.env.JWT_SECRET;
         if (!jwtSecret) {

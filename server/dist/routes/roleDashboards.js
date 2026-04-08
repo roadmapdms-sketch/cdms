@@ -8,9 +8,26 @@ const express_1 = __importDefault(require("express"));
 const client_1 = require("@prisma/client");
 const auth_1 = require("../middleware/auth");
 const accessRoles_1 = require("../constants/accessRoles");
+const syncUsersToMembers_1 = require("../services/syncUsersToMembers");
 const prisma = new client_1.PrismaClient();
 const PASTOR_DASHBOARD_ROLES = ['ADMIN', 'PASTOR', 'STAFF'];
 const VOLUNTEER_COORD_ROLES = ['ADMIN', 'VOLUNTEER_COORDINATOR'];
+const MANAGEABLE_USER_ROLES = [
+    'ADMIN',
+    'ACCOUNTANT',
+    'PASTOR',
+    'STAFF',
+    'VOLUNTEER_COORDINATOR',
+    'MEDIA_DEPARTMENT',
+    'KITCHEN_RESTAURANT',
+    'MANAGEMENT',
+    'USHER_MANAGEMENT',
+    'PARTNERS_COORDINATOR',
+    'PRAYER_LINE_COORDINATOR',
+    'VOLUNTEER',
+    'USER',
+    'MEMBER',
+];
 function startOfMonth(d = new Date()) {
     return new Date(d.getFullYear(), d.getMonth(), 1);
 }
@@ -61,14 +78,14 @@ const ADMIN_PORTAL_REGISTRY = [
     {
         id: 'finance',
         label: 'Finance & accounting',
-        description: 'Budget, expenses, vendors, giving',
+        description: 'Live budget, expenses, vendors, giving, budget planning, builders',
         path: '/accountant',
         roles: ['ACCOUNTANT'],
     },
     {
         id: 'pastoral',
         label: 'Pastoral leadership',
-        description: 'Care, members, prayer coverage',
+        description: 'Pastoral care, members, prayer line coverage, partners, communications',
         path: '/pastor',
         roles: ['PASTOR', 'STAFF'],
     },
@@ -126,7 +143,7 @@ const ADMIN_PORTAL_REGISTRY = [
         label: 'Operations staff',
         description: 'Shared operations console',
         path: '/dashboard',
-        roles: ['USER', 'VOLUNTEER'],
+        roles: ['STAFF'],
     },
 ];
 function summarizePortalUsers(users, roles) {
@@ -145,7 +162,7 @@ function summarizePortalUsers(users, roles) {
 }
 /** /api/admin/stats */
 exports.adminDashboardRouter = express_1.default.Router();
-exports.adminDashboardRouter.get('/stats', auth_1.authMiddleware, (0, auth_1.requireRole)(['ADMIN']), async (_req, res) => {
+exports.adminDashboardRouter.get('/stats', auth_1.authMiddleware, (0, auth_1.requireRole)(['ADMIN']), (0, auth_1.requireRootAdmin)(), async (_req, res) => {
     try {
         res.json(await loadAdminStatsPayload());
     }
@@ -155,7 +172,7 @@ exports.adminDashboardRouter.get('/stats', auth_1.authMiddleware, (0, auth_1.req
     }
 });
 /** /api/admin/overview — stats + portal registry with live user counts + recent cross-system activity */
-exports.adminDashboardRouter.get('/overview', auth_1.authMiddleware, (0, auth_1.requireRole)(['ADMIN']), async (_req, res) => {
+exports.adminDashboardRouter.get('/overview', auth_1.authMiddleware, (0, auth_1.requireRole)(['ADMIN']), (0, auth_1.requireRootAdmin)(), async (_req, res) => {
     try {
         const [stats, portalUsers, recentMembers, recentEvents, recentGiving, recentExpenses, recentComms, recentPastoral, recentAttendance, recentVolunteer,] = await Promise.all([
             loadAdminStatsPayload(),
@@ -291,6 +308,98 @@ exports.adminDashboardRouter.get('/overview', auth_1.authMiddleware, (0, auth_1.
         res.status(500).json({ error: { message: 'Failed to load admin overview' } });
     }
 });
+/** /api/admin/users/roles — list users + role assignment metadata for admin panel */
+exports.adminDashboardRouter.get('/users/roles', auth_1.authMiddleware, (0, auth_1.requireRole)(['ADMIN']), (0, auth_1.requireRootAdmin)(), async (_req, res) => {
+    try {
+        const users = await prisma.user.findMany({
+            orderBy: [{ role: 'asc' }, { createdAt: 'asc' }],
+            select: {
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+                role: true,
+                isActive: true,
+                createdAt: true,
+                updatedAt: true,
+            },
+        });
+        res.json({
+            users,
+            availableRoles: MANAGEABLE_USER_ROLES,
+            rootAdminConfigured: !!(process.env.ROOT_ADMIN_EMAIL || '').trim(),
+            canManageAdminRole: true,
+        });
+    }
+    catch (e) {
+        console.error(e);
+        res.status(500).json({ error: { message: 'Failed to load users for role management' } });
+    }
+});
+/** /api/admin/users/:id/role — update one user role (ADMIN changes require root admin identity). */
+exports.adminDashboardRouter.patch('/users/:id/role', auth_1.authMiddleware, (0, auth_1.requireRole)(['ADMIN']), (0, auth_1.requireRootAdmin)(), async (req, res) => {
+    try {
+        const userId = req.params.id;
+        const role = String(req.body?.role || '').trim().toUpperCase();
+        if (!MANAGEABLE_USER_ROLES.includes(role)) {
+            return res.status(400).json({ error: { message: 'Invalid role value.' } });
+        }
+        const target = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { id: true, role: true, email: true },
+        });
+        if (!target) {
+            return res.status(404).json({ error: { message: 'User not found.' } });
+        }
+        const requester = req;
+        if (requester.userId === target.id && role !== 'ADMIN') {
+            return res.status(400).json({
+                error: { message: 'You cannot remove your own ADMIN role from this panel.' },
+            });
+        }
+        const updated = await prisma.user.update({
+            where: { id: userId },
+            data: { role },
+            select: {
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+                role: true,
+                isActive: true,
+                updatedAt: true,
+            },
+        });
+        res.json({
+            message: 'User role updated successfully.',
+            user: updated,
+        });
+    }
+    catch (e) {
+        console.error(e);
+        res.status(500).json({ error: { message: 'Failed to update user role' } });
+    }
+});
+/**
+ * POST /api/admin/sync/users-to-members
+ * One-time / maintenance: create Member rows for Users not yet in the directory.
+ * Root admin only (same as role management).
+ */
+exports.adminDashboardRouter.post('/sync/users-to-members', auth_1.authMiddleware, (0, auth_1.requireRole)(['ADMIN']), (0, auth_1.requireRootAdmin)(), async (_req, res) => {
+    try {
+        const result = await (0, syncUsersToMembers_1.syncUsersToMembers)(prisma);
+        res.json({
+            message: 'Sync finished.',
+            created: result.created,
+            skipped: result.skipped,
+            errors: result.errors,
+        });
+    }
+    catch (e) {
+        console.error(e);
+        res.status(500).json({ error: { message: 'Failed to sync users to members' } });
+    }
+});
 /** /api/accountant/stats */
 exports.accountantDashboardRouter = express_1.default.Router();
 exports.accountantDashboardRouter.get('/stats', auth_1.authMiddleware, (0, auth_1.requireRole)(accessRoles_1.FINANCE_CORE_ROLES), async (_req, res) => {
@@ -422,7 +531,7 @@ exports.volunteerCoordDashboardRouter.get('/stats', auth_1.authMiddleware, (0, a
 });
 /** /api/member — MEMBER portal */
 exports.memberPortalRouter = express_1.default.Router();
-exports.memberPortalRouter.get('/me/dashboard', auth_1.authMiddleware, (0, auth_1.requireRole)(['MEMBER']), async (req, res) => {
+exports.memberPortalRouter.get('/me/dashboard', auth_1.authMiddleware, (0, auth_1.requireRole)(['MEMBER', 'USER', 'VOLUNTEER']), async (req, res) => {
     try {
         const { userId } = req;
         const user = await prisma.user.findUnique({ where: { id: userId } });

@@ -34,11 +34,13 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 const app_1 = __importStar(require("./app"));
+const rootAdmin_1 = require("./bootstrap/rootAdmin");
 const PORT = process.env.PORT || 5000;
 async function startServer() {
     try {
         await app_1.prisma.$connect();
         console.log('✅ Database connected successfully');
+        await (0, rootAdmin_1.ensureRootAdminFromEnv)(app_1.prisma);
         const server = app_1.default.listen(PORT, () => {
             console.log(`🚀 Server running on port ${PORT}`);
             console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
