@@ -49,8 +49,17 @@ router.get('/', async (req, res) => {
       }
     }
 
-    const [assignments, total] = await Promise.all([
-      prisma.volunteerAssignment.findMany({
+    let total = 0;
+    try {
+      total = await prisma.volunteerAssignment.count({ where });
+    } catch {
+      // Fallback for legacy schema mismatch. We still return assignment rows below.
+      total = 0;
+    }
+
+    let assignments: any[] = [];
+    try {
+      assignments = await prisma.volunteerAssignment.findMany({
         where,
         include: {
           member: {
@@ -79,9 +88,19 @@ router.get('/', async (req, res) => {
         orderBy: { createdAt: 'desc' },
         skip,
         take: Number(limit)
-      }),
-      prisma.volunteerAssignment.count({ where })
-    ]);
+      });
+    } catch (e) {
+      console.error('Volunteers fetch with includes failed; retrying without relations.', e);
+      assignments = await prisma.volunteerAssignment.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: Number(limit)
+      });
+      if (!total) {
+        total = assignments.length;
+      }
+    }
 
     const pages = Math.ceil(total / Number(limit));
 
