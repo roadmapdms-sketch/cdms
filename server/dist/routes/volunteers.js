@@ -91,11 +91,19 @@ router.get('/', async (req, res) => {
             }
             catch (e2) {
                 console.error('Volunteers fetch with createdAt order failed; retrying without order.', e2);
-                assignments = await prisma.volunteerAssignment.findMany({
-                    where,
-                    skip,
-                    take: Number(limit)
-                });
+                try {
+                    assignments = await prisma.volunteerAssignment.findMany({
+                        where,
+                        skip,
+                        take: Number(limit)
+                    });
+                }
+                catch (e3) {
+                    console.error('Volunteers fetch with filters failed; retrying with minimal query.', e3);
+                    assignments = await prisma.volunteerAssignment.findMany({
+                        take: Number(limit)
+                    });
+                }
             }
             if (!total) {
                 total = assignments.length;
@@ -299,15 +307,18 @@ router.get('/stats/top-volunteers', async (req, res) => {
                 where.startDate.lte = new Date(dateTo);
             }
         }
-        const topVolunteers = await prisma.volunteerAssignment.groupBy({
-            by: ['memberId'],
-            where,
-            _count: { id: true },
-            orderBy: {
-                _count: { id: 'desc' }
-            },
-            take: Number(limit)
+        const rows = await prisma.volunteerAssignment.findMany({
+            where: { status: 'COMPLETED' },
+            select: { memberId: true },
         });
+        const counts = new Map();
+        for (const row of rows) {
+            counts.set(row.memberId, (counts.get(row.memberId) || 0) + 1);
+        }
+        const topVolunteers = Array.from(counts.entries())
+            .map(([memberId, count]) => ({ memberId, _count: { id: count } }))
+            .sort((a, b) => b._count.id - a._count.id)
+            .slice(0, Number(limit));
         // Get member details for each volunteer
         const volunteersWithDetails = await Promise.all(topVolunteers.map(async (volunteer) => {
             const member = await prisma.member.findUnique({

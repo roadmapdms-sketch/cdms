@@ -84,28 +84,6 @@ router.get('/', async (req, res) => {
         });
     }
 });
-// Get single event
-router.get('/:id', async (req, res) => {
-    try {
-        const event = await prisma.event.findUnique({
-            where: { id: req.params.id },
-            include: {
-                creator: true
-            }
-        });
-        if (!event) {
-            return res.status(404).json({
-                error: { message: 'Event not found' }
-            });
-        }
-        res.json(event);
-    }
-    catch (error) {
-        res.status(500).json({
-            error: { message: 'Failed to fetch event' }
-        });
-    }
-});
 // Create new event
 router.post('/', async (req, res) => {
     try {
@@ -431,6 +409,28 @@ router.post('/:id/register', async (req, res) => {
     catch (error) {
         res.status(500).json({
             error: { message: 'Failed to process event registration' }
+        });
+    }
+});
+// Get single event
+router.get('/:id', async (req, res) => {
+    try {
+        const event = await prisma.event.findUnique({
+            where: { id: req.params.id },
+            include: {
+                creator: true
+            }
+        });
+        if (!event) {
+            return res.status(404).json({
+                error: { message: 'Event not found' }
+            });
+        }
+        res.json(event);
+    }
+    catch (error) {
+        res.status(500).json({
+            error: { message: 'Failed to fetch event' }
         });
     }
 });

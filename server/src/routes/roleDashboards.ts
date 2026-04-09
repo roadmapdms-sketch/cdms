@@ -50,26 +50,44 @@ export type AdminStatsPayload = {
 async function loadAdminStatsPayload(): Promise<AdminStatsPayload> {
   const now = new Date();
   const monthStart = startOfMonth();
-  const [
-    totalMembers,
-    budgetSum,
-    upcomingEvents,
-    membersThisMonth,
-    incomeMonth,
-    attendanceMonth,
-  ] = await Promise.all([
-    prisma.member.count(),
-    prisma.budget.aggregate({ _sum: { amount: true } }),
-    prisma.event.count({
-      where: { startDate: { gte: now }, status: { not: 'CANCELLED' } },
-    }),
-    prisma.member.count({ where: { createdAt: { gte: monthStart } } }),
-    prisma.financialRecord.aggregate({
-      where: { date: { gte: monthStart } },
-      _sum: { amount: true },
-    }),
-    prisma.attendance.count({ where: { checkIn: { gte: monthStart } } }),
-  ]);
+  const safeCount = async (run: () => Promise<number>) => {
+    try {
+      return await run();
+    } catch (e) {
+      console.error('Admin stats count fallback:', e);
+      return 0;
+    }
+  };
+  const safeSumAmount = async (
+    run: () => Promise<{ _sum: { amount: number | null } }>
+  ) => {
+    try {
+      const result = await run();
+      return result._sum.amount ?? 0;
+    } catch (e) {
+      console.error('Admin stats aggregate fallback:', e);
+      return 0;
+    }
+  };
+
+  const [totalMembers, totalBudget, upcomingEvents, membersThisMonth, monthlyIncome, attendanceMonth] =
+    await Promise.all([
+      safeCount(() => prisma.member.count()),
+      safeSumAmount(() => prisma.budget.aggregate({ _sum: { amount: true } })),
+      safeCount(() =>
+        prisma.event.count({
+          where: { startDate: { gte: now }, status: { not: 'CANCELLED' } },
+        })
+      ),
+      safeCount(() => prisma.member.count({ where: { createdAt: { gte: monthStart } } })),
+      safeSumAmount(() =>
+        prisma.financialRecord.aggregate({
+          where: { date: { gte: monthStart } },
+          _sum: { amount: true },
+        })
+      ),
+      safeCount(() => prisma.attendance.count({ where: { checkIn: { gte: monthStart } } })),
+    ]);
 
   const monthlyGrowth =
     totalMembers > 0 ? Math.min(100, Math.round((membersThisMonth / totalMembers) * 100)) : 0;
@@ -78,11 +96,11 @@ async function loadAdminStatsPayload(): Promise<AdminStatsPayload> {
 
   return {
     totalMembers,
-    totalBudget: budgetSum._sum.amount ?? 0,
+    totalBudget,
     attendanceRate,
     upcomingEvents,
     monthlyGrowth,
-    monthlyIncome: incomeMonth._sum.amount ?? 0,
+    monthlyIncome,
   };
 }
 
