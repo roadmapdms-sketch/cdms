@@ -68,25 +68,6 @@ router.get('/', async (req, res) => {
         });
     }
 });
-// Get single budget
-router.get('/:id', async (req, res) => {
-    try {
-        const budget = await prisma.budget.findUnique({
-            where: { id: req.params.id }
-        });
-        if (!budget) {
-            return res.status(404).json({
-                error: { message: 'Budget not found' }
-            });
-        }
-        res.json(budget);
-    }
-    catch (error) {
-        res.status(500).json({
-            error: { message: 'Failed to fetch budget' }
-        });
-    }
-});
 // Create new budget
 router.post('/', async (req, res) => {
     try {
@@ -383,6 +364,25 @@ router.post('/:id/close', async (req, res) => {
     catch (error) {
         res.status(500).json({
             error: { message: 'Failed to close budget' }
+        });
+    }
+});
+// Get single budget
+router.get('/:id', async (req, res) => {
+    try {
+        const budget = await prisma.budget.findUnique({
+            where: { id: req.params.id }
+        });
+        if (!budget) {
+            return res.status(404).json({
+                error: { message: 'Budget not found' }
+            });
+        }
+        res.json(budget);
+    }
+    catch (error) {
+        res.status(500).json({
+            error: { message: 'Failed to fetch budget' }
         });
     }
 });

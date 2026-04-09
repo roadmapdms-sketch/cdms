@@ -69,27 +69,6 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Get single vendor
-router.get('/:id', async (req, res) => {
-  try {
-    const vendor = await prisma.vendor.findUnique({
-      where: { id: req.params.id }
-    });
-
-    if (!vendor) {
-      return res.status(404).json({ 
-        error: { message: 'Vendor not found' }
-      });
-    }
-
-    res.json(vendor);
-  } catch (error: any) {
-    res.status(500).json({ 
-      error: { message: 'Failed to fetch vendor' }
-    });
-  }
-});
-
 // Create new vendor
 router.post('/', async (req, res) => {
   try {
@@ -344,6 +323,27 @@ router.post('/bulk-update', async (req, res) => {
   } catch (error: any) {
     res.status(500).json({ 
       error: { message: 'Failed to process bulk update' }
+    });
+  }
+});
+
+// Get single vendor
+router.get('/:id', async (req, res) => {
+  try {
+    const vendor = await prisma.vendor.findUnique({
+      where: { id: req.params.id }
+    });
+
+    if (!vendor) {
+      return res.status(404).json({ 
+        error: { message: 'Vendor not found' }
+      });
+    }
+
+    res.json(vendor);
+  } catch (error: any) {
+    res.status(500).json({ 
+      error: { message: 'Failed to fetch vendor' }
     });
   }
 });

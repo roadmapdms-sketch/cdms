@@ -62,46 +62,6 @@ router.get('/', async (req, res) => {
         });
     }
 });
-// Get single inventory item
-router.get('/:id', async (req, res) => {
-    try {
-        const item = await prisma.inventoryItem.findUnique({
-            where: { id: req.params.id },
-            include: {
-                checkouts: {
-                    include: {
-                        user: {
-                            select: {
-                                id: true,
-                                firstName: true,
-                                lastName: true
-                            }
-                        },
-                        member: {
-                            select: {
-                                id: true,
-                                firstName: true,
-                                lastName: true
-                            }
-                        }
-                    },
-                    orderBy: { checkOutDate: 'desc' }
-                }
-            }
-        });
-        if (!item) {
-            return res.status(404).json({
-                error: { message: 'Inventory item not found' }
-            });
-        }
-        res.json(item);
-    }
-    catch (error) {
-        res.status(500).json({
-            error: { message: 'Failed to fetch inventory item' }
-        });
-    }
-});
 // Create new inventory item
 router.post('/', async (req, res) => {
     try {
@@ -387,6 +347,46 @@ router.get('/checkouts/history', async (req, res) => {
     catch (error) {
         res.status(500).json({
             error: { message: 'Failed to fetch checkout history' }
+        });
+    }
+});
+// Get single inventory item
+router.get('/:id', async (req, res) => {
+    try {
+        const item = await prisma.inventoryItem.findUnique({
+            where: { id: req.params.id },
+            include: {
+                checkouts: {
+                    include: {
+                        user: {
+                            select: {
+                                id: true,
+                                firstName: true,
+                                lastName: true
+                            }
+                        },
+                        member: {
+                            select: {
+                                id: true,
+                                firstName: true,
+                                lastName: true
+                            }
+                        }
+                    },
+                    orderBy: { checkOutDate: 'desc' }
+                }
+            }
+        });
+        if (!item) {
+            return res.status(404).json({
+                error: { message: 'Inventory item not found' }
+            });
+        }
+        res.json(item);
+    }
+    catch (error) {
+        res.status(500).json({
+            error: { message: 'Failed to fetch inventory item' }
         });
     }
 });

@@ -80,28 +80,6 @@ router.get('/', async (req, res) => {
         });
     }
 });
-// Get single expense
-router.get('/:id', async (req, res) => {
-    try {
-        const expense = await prisma.expense.findUnique({
-            where: { id: req.params.id },
-            include: {
-                event: true
-            }
-        });
-        if (!expense) {
-            return res.status(404).json({
-                error: { message: 'Expense not found' }
-            });
-        }
-        res.json(expense);
-    }
-    catch (error) {
-        res.status(500).json({
-            error: { message: 'Failed to fetch expense' }
-        });
-    }
-});
 // Create new expense
 router.post('/', async (req, res) => {
     try {
@@ -469,6 +447,28 @@ router.post('/bulk-approve', async (req, res) => {
     catch (error) {
         res.status(500).json({
             error: { message: 'Failed to process bulk approval' }
+        });
+    }
+});
+// Get single expense
+router.get('/:id', async (req, res) => {
+    try {
+        const expense = await prisma.expense.findUnique({
+            where: { id: req.params.id },
+            include: {
+                event: true
+            }
+        });
+        if (!expense) {
+            return res.status(404).json({
+                error: { message: 'Expense not found' }
+            });
+        }
+        res.json(expense);
+    }
+    catch (error) {
+        res.status(500).json({
+            error: { message: 'Failed to fetch expense' }
         });
     }
 });

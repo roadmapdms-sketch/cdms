@@ -88,30 +88,6 @@ router.get('/', async (req, res) => {
         });
     }
 });
-// Get single volunteer assignment
-router.get('/:id', async (req, res) => {
-    try {
-        const assignment = await prisma.volunteerAssignment.findUnique({
-            where: { id: req.params.id },
-            include: {
-                member: true,
-                ministry: true,
-                user: true
-            }
-        });
-        if (!assignment) {
-            return res.status(404).json({
-                error: { message: 'Volunteer assignment not found' }
-            });
-        }
-        res.json(assignment);
-    }
-    catch (error) {
-        res.status(500).json({
-            error: { message: 'Failed to fetch volunteer assignment' }
-        });
-    }
-});
 // Create new volunteer assignment
 router.post('/', async (req, res) => {
     try {
@@ -401,6 +377,30 @@ router.post('/bulk', async (req, res) => {
     catch (error) {
         res.status(500).json({
             error: { message: 'Failed to process bulk volunteer assignment' }
+        });
+    }
+});
+// Get single volunteer assignment
+router.get('/:id', async (req, res) => {
+    try {
+        const assignment = await prisma.volunteerAssignment.findUnique({
+            where: { id: req.params.id },
+            include: {
+                member: true,
+                ministry: true,
+                user: true
+            }
+        });
+        if (!assignment) {
+            return res.status(404).json({
+                error: { message: 'Volunteer assignment not found' }
+            });
+        }
+        res.json(assignment);
+    }
+    catch (error) {
+        res.status(500).json({
+            error: { message: 'Failed to fetch volunteer assignment' }
         });
     }
 });

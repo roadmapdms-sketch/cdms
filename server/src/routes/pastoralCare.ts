@@ -98,31 +98,6 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Get single pastoral care record
-router.get('/:id', async (req, res) => {
-  try {
-    const record = await prisma.pastoralCareRecord.findUnique({
-      where: { id: req.params.id },
-      include: {
-        member: true,
-        user: true
-      }
-    });
-
-    if (!record) {
-      return res.status(404).json({ 
-        error: { message: 'Pastoral care record not found' }
-      });
-    }
-
-    res.json(record);
-  } catch (error: any) {
-    res.status(500).json({ 
-      error: { message: 'Failed to fetch pastoral care record' }
-    });
-  }
-});
-
 // Create new pastoral care record
 router.post('/', async (req, res) => {
   try {
@@ -409,6 +384,31 @@ router.post('/bulk-update', async (req, res) => {
   } catch (error: any) {
     res.status(500).json({ 
       error: { message: 'Failed to process bulk update' }
+    });
+  }
+});
+
+// Get single pastoral care record
+router.get('/:id', async (req, res) => {
+  try {
+    const record = await prisma.pastoralCareRecord.findUnique({
+      where: { id: req.params.id },
+      include: {
+        member: true,
+        user: true
+      }
+    });
+
+    if (!record) {
+      return res.status(404).json({ 
+        error: { message: 'Pastoral care record not found' }
+      });
+    }
+
+    res.json(record);
+  } catch (error: any) {
+    res.status(500).json({ 
+      error: { message: 'Failed to fetch pastoral care record' }
     });
   }
 });
