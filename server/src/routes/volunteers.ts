@@ -91,12 +91,21 @@ router.get('/', async (req, res) => {
       });
     } catch (e) {
       console.error('Volunteers fetch with includes failed; retrying without relations.', e);
-      assignments = await prisma.volunteerAssignment.findMany({
-        where,
-        orderBy: { createdAt: 'desc' },
-        skip,
-        take: Number(limit)
-      });
+      try {
+        assignments = await prisma.volunteerAssignment.findMany({
+          where,
+          orderBy: { createdAt: 'desc' },
+          skip,
+          take: Number(limit)
+        });
+      } catch (e2) {
+        console.error('Volunteers fetch with createdAt order failed; retrying without order.', e2);
+        assignments = await prisma.volunteerAssignment.findMany({
+          where,
+          skip,
+          take: Number(limit)
+        });
+      }
       if (!total) {
         total = assignments.length;
       }
