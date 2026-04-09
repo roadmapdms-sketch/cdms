@@ -39,8 +39,10 @@ router.get('/', async (req, res) => {
                 where.startDate.lte = new Date(dateTo);
             }
         }
-        const [events, total] = await Promise.all([
-            prisma.event.findMany({
+        const total = await prisma.event.count({ where });
+        let events = [];
+        try {
+            events = await prisma.event.findMany({
                 where,
                 include: {
                     creator: {
@@ -54,9 +56,17 @@ router.get('/', async (req, res) => {
                 orderBy: { startDate: 'asc' },
                 skip,
                 take: Number(limit)
-            }),
-            prisma.event.count({ where })
-        ]);
+            });
+        }
+        catch (e) {
+            // Fallback for legacy rows where required creator relation is inconsistent.
+            events = await prisma.event.findMany({
+                where,
+                orderBy: { startDate: 'asc' },
+                skip,
+                take: Number(limit)
+            });
+        }
         const pages = Math.ceil(total / Number(limit));
         res.json({
             events,
@@ -120,6 +130,12 @@ router.post('/', async (req, res) => {
                 error: { message: 'Invalid event status' }
             });
         }
+        const authReq = req;
+        if (!authReq.userId) {
+            return res.status(401).json({
+                error: { message: 'Authentication required.' }
+            });
+        }
         const event = await prisma.event.create({
             data: {
                 title,
@@ -129,7 +145,7 @@ router.post('/', async (req, res) => {
                 type,
                 status,
                 maxCapacity: maxAttendees ? Number(maxAttendees) : null,
-                createdBy: req.user.id
+                createdBy: authReq.userId
             },
             include: {
                 creator: true
@@ -327,6 +343,12 @@ router.get('/calendar', async (req, res) => {
 // Register attendees for event
 router.post('/:id/register', async (req, res) => {
     try {
+        const authReq = req;
+        if (!authReq.userId) {
+            return res.status(401).json({
+                error: { message: 'Authentication required.' }
+            });
+        }
         const { memberIds } = req.body;
         if (!memberIds || !Array.isArray(memberIds)) {
             return res.status(400).json({
@@ -382,7 +404,7 @@ router.post('/:id/register', async (req, res) => {
                         eventId,
                         checkIn: new Date(),
                         status: 'REGISTERED',
-                        userId: req.user.id
+                        userId: authReq.userId
                     }
                 });
                 return {
