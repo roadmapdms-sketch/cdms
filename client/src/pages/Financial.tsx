@@ -52,7 +52,7 @@ interface MonthlyData {
 }
 
 interface TopDonor {
-  member: {
+  member?: {
     id: string;
     firstName: string;
     lastName: string;
@@ -79,6 +79,11 @@ const Financial: React.FC = () => {
   const [showReportModal, setShowReportModal] = useState(false);
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+
+  const safeNum = (v: unknown): number => {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : 0;
+  };
 
   const fetchFinancialRecords = useCallback(async () => {
     try {
@@ -113,18 +118,43 @@ const Financial: React.FC = () => {
       });
 
       const response = await axios.get(`${API_BASE_URL}/financial/stats/overview?${params}`);
-      setStats(response.data);
+      const raw = response.data || {};
+      setStats({
+        totalRecords: safeNum(raw.totalRecords),
+        totalIncome: safeNum(raw.totalIncome),
+        totalExpenses: safeNum(raw.totalExpenses),
+        netIncome: safeNum(raw.netIncome),
+        breakdown: {
+          tithes: safeNum(raw.breakdown?.tithes),
+          offerings: safeNum(raw.breakdown?.offerings),
+          donations: safeNum(raw.breakdown?.donations),
+          fees: safeNum(raw.breakdown?.fees),
+        },
+        period: {
+          from: raw.period?.from ?? null,
+          to: raw.period?.to ?? null,
+        },
+      });
     } catch (err: any) {
       console.error('Failed to fetch stats:', err);
+      setStats(null);
     }
   }, [dateFrom, dateTo]);
 
   const fetchMonthlyData = useCallback(async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/financial/stats/monthly`);
-      setMonthlyData(response.data.data);
+      const rows = Array.isArray(response.data?.data) ? response.data.data : [];
+      setMonthlyData(
+        rows.map((r: any) => ({
+          month: String(r?.month ?? ''),
+          income: safeNum(r?.income),
+          transactions: safeNum(r?.transactions),
+        }))
+      );
     } catch (err: any) {
       console.error('Failed to fetch monthly data:', err);
+      setMonthlyData([]);
     }
   }, []);
 
@@ -136,9 +166,24 @@ const Financial: React.FC = () => {
       });
 
       const response = await axios.get(`${API_BASE_URL}/financial/stats/top-donors?${params}`);
-      setTopDonors(response.data.donors);
+      const donors = Array.isArray(response.data?.donors) ? response.data.donors : [];
+      setTopDonors(
+        donors.map((d: any) => ({
+          member: d?.member
+            ? {
+                id: String(d.member.id ?? ''),
+                firstName: String(d.member.firstName ?? 'Unknown'),
+                lastName: String(d.member.lastName ?? 'Member'),
+                email: d.member.email ? String(d.member.email) : undefined,
+              }
+            : undefined,
+          totalAmount: safeNum(d?.totalAmount),
+          transactionCount: safeNum(d?.transactionCount),
+        }))
+      );
     } catch (err: any) {
       console.error('Failed to fetch top donors:', err);
+      setTopDonors([]);
     }
   }, [dateFrom, dateTo]);
 
@@ -346,12 +391,12 @@ const Financial: React.FC = () => {
             <h3 className="text-lg font-medium text-gray-900 mb-4">Top Donors</h3>
             <div className="space-y-3">
               {topDonors.slice(0, 5).map((donor, index) => (
-                <div key={donor.member.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div key={donor.member?.id || `donor-${index}`} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div>
                     <p className="font-medium text-gray-900">
-                      {donor.member.firstName} {donor.member.lastName}
+                      {donor.member ? `${donor.member.firstName} ${donor.member.lastName}` : 'Unknown member'}
                     </p>
-                    <p className="text-sm text-gray-600">{donor.member.email}</p>
+                    <p className="text-sm text-gray-600">{donor.member?.email || 'No email'}</p>
                   </div>
                   <div className="text-right">
                     <p className="text-lg font-bold text-green-600">${donor.totalAmount.toFixed(2)}</p>
