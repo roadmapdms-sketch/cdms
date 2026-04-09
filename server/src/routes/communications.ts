@@ -182,80 +182,9 @@ router.post('/', async (req, res) => {
 
     res.status(201).json(communication);
   } catch (error: any) {
+    console.error('Failed to create communication:', error);
     res.status(500).json({ 
       error: { message: 'Failed to create communication' }
-    });
-  }
-});
-
-// Update communication
-router.put('/:id', async (req, res) => {
-  try {
-    const { type, subject, content, method, scheduled, status, response, sent } = req.body;
-
-    const communication = await prisma.communication.update({
-      where: { id: req.params.id },
-      data: {
-        ...(type && { type }),
-        ...(subject && { subject }),
-        ...(content && { content }),
-        ...(method && { method }),
-        ...(scheduled && { scheduled: new Date(scheduled) }),
-        ...(status && { status }),
-        ...(response && { response }),
-        ...(sent && { sent: new Date(sent) })
-      },
-      include: {
-        member: true,
-        user: true
-      }
-    });
-
-    res.json(communication);
-  } catch (error: any) {
-    res.status(500).json({ 
-      error: { message: 'Failed to update communication' }
-    });
-  }
-});
-
-// Delete communication
-router.delete('/:id', async (req, res) => {
-  try {
-    await prisma.communication.delete({
-      where: { id: req.params.id }
-    });
-
-    res.json({ message: 'Communication deleted successfully' });
-  } catch (error: any) {
-    res.status(500).json({ 
-      error: { message: 'Failed to delete communication' }
-    });
-  }
-});
-
-// Send communication (Mark as sent)
-router.post('/:id/send', async (req, res) => {
-  try {
-    const communication = await prisma.communication.update({
-      where: { id: req.params.id },
-      data: {
-        status: 'SENT',
-        sent: new Date()
-      },
-      include: {
-        member: true,
-        user: true
-      }
-    });
-
-    res.json({
-      message: 'Communication marked as sent',
-      communication
-    });
-  } catch (error: any) {
-    res.status(500).json({ 
-      error: { message: 'Failed to send communication' }
     });
   }
 });
@@ -301,6 +230,7 @@ router.get('/stats/overview', async (req, res) => {
       }
     });
   } catch (error: any) {
+    console.error('Failed to fetch communication statistics:', error);
     res.status(500).json({ 
       error: { message: 'Failed to fetch communication statistics' }
     });
@@ -390,31 +320,6 @@ router.post('/bulk', async (req, res) => {
   }
 });
 
-// Get single communication (placed after static GET routes like /templates)
-router.get('/:id', async (req, res) => {
-  try {
-    const communication = await prisma.communication.findUnique({
-      where: { id: req.params.id },
-      include: {
-        member: true,
-        user: true
-      }
-    });
-
-    if (!communication) {
-      return res.status(404).json({ 
-        error: { message: 'Communication not found' }
-      });
-    }
-
-    res.json(communication);
-  } catch (error: any) {
-    res.status(500).json({ 
-      error: { message: 'Failed to fetch communication' }
-    });
-  }
-});
-
 // Get communication templates
 router.get('/templates', async (req, res) => {
   try {
@@ -453,6 +358,103 @@ router.get('/templates', async (req, res) => {
   } catch (error: any) {
     res.status(500).json({ 
       error: { message: 'Failed to fetch communication templates' }
+    });
+  }
+});
+
+// Get single communication (must be after static GET routes like /templates)
+router.get('/:id', async (req, res) => {
+  try {
+    const communication = await prisma.communication.findUnique({
+      where: { id: req.params.id },
+      include: {
+        member: true,
+        user: true
+      }
+    });
+
+    if (!communication) {
+      return res.status(404).json({ 
+        error: { message: 'Communication not found' }
+      });
+    }
+
+    res.json(communication);
+  } catch (error: any) {
+    res.status(500).json({ 
+      error: { message: 'Failed to fetch communication' }
+    });
+  }
+});
+
+// Update communication
+router.put('/:id', async (req, res) => {
+  try {
+    const { type, subject, content, method, scheduled, status, response, sent } = req.body;
+
+    const communication = await prisma.communication.update({
+      where: { id: req.params.id },
+      data: {
+        ...(type && { type }),
+        ...(subject && { subject }),
+        ...(content && { content }),
+        ...(method && { method }),
+        ...(scheduled && { scheduled: new Date(scheduled) }),
+        ...(status && { status }),
+        ...(response && { response }),
+        ...(sent && { sent: new Date(sent) })
+      },
+      include: {
+        member: true,
+        user: true
+      }
+    });
+
+    res.json(communication);
+  } catch (error: any) {
+    res.status(500).json({ 
+      error: { message: 'Failed to update communication' }
+    });
+  }
+});
+
+// Delete communication
+router.delete('/:id', async (req, res) => {
+  try {
+    await prisma.communication.delete({
+      where: { id: req.params.id }
+    });
+
+    res.json({ message: 'Communication deleted successfully' });
+  } catch (error: any) {
+    res.status(500).json({ 
+      error: { message: 'Failed to delete communication' }
+    });
+  }
+});
+
+// Send communication (Mark as sent)
+router.post('/:id/send', async (req, res) => {
+  try {
+    const communication = await prisma.communication.update({
+      where: { id: req.params.id },
+      data: {
+        status: 'SENT',
+        sent: new Date()
+      },
+      include: {
+        member: true,
+        user: true
+      }
+    });
+
+    res.json({
+      message: 'Communication marked as sent',
+      communication
+    });
+  } catch (error: any) {
+    res.status(500).json({ 
+      error: { message: 'Failed to send communication' }
     });
   }
 });
