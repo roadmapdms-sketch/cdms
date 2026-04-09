@@ -38,8 +38,10 @@ router.get('/', async (req, res) => {
                 where.createdAt.lte = new Date(dateTo);
             }
         }
-        const [communications, total] = await Promise.all([
-            prisma.communication.findMany({
+        const total = await prisma.communication.count({ where });
+        let communications = [];
+        try {
+            communications = await prisma.communication.findMany({
                 where,
                 include: {
                     member: {
@@ -62,9 +64,17 @@ router.get('/', async (req, res) => {
                 orderBy: { createdAt: 'desc' },
                 skip,
                 take: Number(limit)
-            }),
-            prisma.communication.count({ where })
-        ]);
+            });
+        }
+        catch {
+            // Fallback for legacy rows where relations are inconsistent.
+            communications = await prisma.communication.findMany({
+                where,
+                orderBy: { createdAt: 'desc' },
+                skip,
+                take: Number(limit)
+            });
+        }
         const pages = Math.ceil(total / Number(limit));
         res.json({
             communications,
@@ -79,29 +89,6 @@ router.get('/', async (req, res) => {
     catch (error) {
         res.status(500).json({
             error: { message: 'Failed to fetch communications' }
-        });
-    }
-});
-// Get single communication
-router.get('/:id', async (req, res) => {
-    try {
-        const communication = await prisma.communication.findUnique({
-            where: { id: req.params.id },
-            include: {
-                member: true,
-                user: true
-            }
-        });
-        if (!communication) {
-            return res.status(404).json({
-                error: { message: 'Communication not found' }
-            });
-        }
-        res.json(communication);
-    }
-    catch (error) {
-        res.status(500).json({
-            error: { message: 'Failed to fetch communication' }
         });
     }
 });
@@ -140,10 +127,17 @@ router.post('/', async (req, res) => {
                 });
             }
         }
+        const authReq = req;
+        if (!authReq.userId) {
+            return res.status(401).json({
+                error: { message: 'Authentication required.' }
+            });
+        }
+        const requestUserId = authReq.userId;
         const communication = await prisma.communication.create({
             data: {
                 memberId,
-                userId: req.user.id, // Get user from auth middleware
+                userId: requestUserId,
                 type,
                 subject,
                 content,
@@ -289,6 +283,13 @@ router.post('/bulk', async (req, res) => {
                 error: { message: 'Type, subject, content, and method are required' }
             });
         }
+        const authReq = req;
+        if (!authReq.userId) {
+            return res.status(401).json({
+                error: { message: 'Authentication required.' }
+            });
+        }
+        const requestUserId = authReq.userId;
         const results = await Promise.all(memberIds.map(async (memberId) => {
             try {
                 // Check if member exists
@@ -305,7 +306,7 @@ router.post('/bulk', async (req, res) => {
                 const communication = await prisma.communication.create({
                     data: {
                         memberId,
-                        userId: req.user.id,
+                        userId: requestUserId,
                         type,
                         subject,
                         content,
@@ -338,6 +339,29 @@ router.post('/bulk', async (req, res) => {
     catch (error) {
         res.status(500).json({
             error: { message: 'Failed to process bulk communication' }
+        });
+    }
+});
+// Get single communication (placed after static GET routes like /templates)
+router.get('/:id', async (req, res) => {
+    try {
+        const communication = await prisma.communication.findUnique({
+            where: { id: req.params.id },
+            include: {
+                member: true,
+                user: true
+            }
+        });
+        if (!communication) {
+            return res.status(404).json({
+                error: { message: 'Communication not found' }
+            });
+        }
+        res.json(communication);
+    }
+    catch (error) {
+        res.status(500).json({
+            error: { message: 'Failed to fetch communication' }
         });
     }
 });

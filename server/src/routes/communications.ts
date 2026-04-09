@@ -1,6 +1,6 @@
 import express from 'express';
 import { PrismaClient } from '@prisma/client';
-import { authMiddleware, requireRole } from '../middleware/auth';
+import { authMiddleware, requireRole, AuthRequest } from '../middleware/auth';
 import { STAFF_MODULE_ROLES } from '../constants/accessRoles';
 
 const router = express.Router();
@@ -49,8 +49,10 @@ router.get('/', async (req, res) => {
       }
     }
 
-    const [communications, total] = await Promise.all([
-      prisma.communication.findMany({
+    const total = await prisma.communication.count({ where });
+    let communications: any[] = [];
+    try {
+      communications = await prisma.communication.findMany({
         where,
         include: {
           member: {
@@ -73,9 +75,16 @@ router.get('/', async (req, res) => {
         orderBy: { createdAt: 'desc' },
         skip,
         take: Number(limit)
-      }),
-      prisma.communication.count({ where })
-    ]);
+      });
+    } catch {
+      // Fallback for legacy rows where relations are inconsistent.
+      communications = await prisma.communication.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: Number(limit)
+      });
+    }
 
     const pages = Math.ceil(total / Number(limit));
 
@@ -91,31 +100,6 @@ router.get('/', async (req, res) => {
   } catch (error: any) {
     res.status(500).json({ 
       error: { message: 'Failed to fetch communications' }
-    });
-  }
-});
-
-// Get single communication
-router.get('/:id', async (req, res) => {
-  try {
-    const communication = await prisma.communication.findUnique({
-      where: { id: req.params.id },
-      include: {
-        member: true,
-        user: true
-      }
-    });
-
-    if (!communication) {
-      return res.status(404).json({ 
-        error: { message: 'Communication not found' }
-      });
-    }
-
-    res.json(communication);
-  } catch (error: any) {
-    res.status(500).json({ 
-      error: { message: 'Failed to fetch communication' }
     });
   }
 });
@@ -169,10 +153,18 @@ router.post('/', async (req, res) => {
       }
     }
 
+    const authReq = req as AuthRequest;
+    if (!authReq.userId) {
+      return res.status(401).json({
+        error: { message: 'Authentication required.' }
+      });
+    }
+    const requestUserId = authReq.userId;
+
     const communication = await prisma.communication.create({
       data: {
         memberId,
-        userId: (req as any).user.id, // Get user from auth middleware
+        userId: requestUserId,
         type,
         subject,
         content,
@@ -330,6 +322,14 @@ router.post('/bulk', async (req, res) => {
       });
     }
 
+    const authReq = req as AuthRequest;
+    if (!authReq.userId) {
+      return res.status(401).json({
+        error: { message: 'Authentication required.' }
+      });
+    }
+    const requestUserId = authReq.userId;
+
     const results = await Promise.all(
       memberIds.map(async (memberId: string) => {
         try {
@@ -349,7 +349,7 @@ router.post('/bulk', async (req, res) => {
           const communication = await prisma.communication.create({
             data: {
               memberId,
-              userId: (req as any).user.id,
+              userId: requestUserId,
               type,
               subject,
               content,
@@ -384,6 +384,31 @@ router.post('/bulk', async (req, res) => {
   } catch (error: any) {
     res.status(500).json({ 
       error: { message: 'Failed to process bulk communication' }
+    });
+  }
+});
+
+// Get single communication (placed after static GET routes like /templates)
+router.get('/:id', async (req, res) => {
+  try {
+    const communication = await prisma.communication.findUnique({
+      where: { id: req.params.id },
+      include: {
+        member: true,
+        user: true
+      }
+    });
+
+    if (!communication) {
+      return res.status(404).json({ 
+        error: { message: 'Communication not found' }
+      });
+    }
+
+    res.json(communication);
+  } catch (error: any) {
+    res.status(500).json({ 
+      error: { message: 'Failed to fetch communication' }
     });
   }
 });
