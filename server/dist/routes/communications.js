@@ -96,6 +96,7 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
     try {
         const { memberId, type, subject, content, method, scheduled, status = 'PENDING' } = req.body;
+        const normalizedMemberId = typeof memberId === 'string' && memberId.trim() === '' ? null : memberId;
         // Validate required fields
         if (!type || !subject || !content || !method) {
             return res.status(400).json({
@@ -117,9 +118,9 @@ router.post('/', async (req, res) => {
             });
         }
         // If memberId is provided, check if member exists
-        if (memberId) {
+        if (normalizedMemberId) {
             const member = await prisma.member.findUnique({
-                where: { id: memberId }
+                where: { id: normalizedMemberId }
             });
             if (!member) {
                 return res.status(400).json({
@@ -136,7 +137,7 @@ router.post('/', async (req, res) => {
         const requestUserId = authReq.userId;
         const communication = await prisma.communication.create({
             data: {
-                memberId,
+                memberId: normalizedMemberId,
                 userId: requestUserId,
                 type,
                 subject,

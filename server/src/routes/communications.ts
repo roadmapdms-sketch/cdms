@@ -116,6 +116,8 @@ router.post('/', async (req, res) => {
       scheduled,
       status = 'PENDING'
     } = req.body;
+    const normalizedMemberId =
+      typeof memberId === 'string' && memberId.trim() === '' ? null : memberId;
 
     // Validate required fields
     if (!type || !subject || !content || !method) {
@@ -141,9 +143,9 @@ router.post('/', async (req, res) => {
     }
 
     // If memberId is provided, check if member exists
-    if (memberId) {
+    if (normalizedMemberId) {
       const member = await prisma.member.findUnique({
-        where: { id: memberId }
+        where: { id: normalizedMemberId }
       });
 
       if (!member) {
@@ -163,7 +165,7 @@ router.post('/', async (req, res) => {
 
     const communication = await prisma.communication.create({
       data: {
-        memberId,
+        memberId: normalizedMemberId,
         userId: requestUserId,
         type,
         subject,
