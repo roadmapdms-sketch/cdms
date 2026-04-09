@@ -17,6 +17,7 @@ export const SIGN_IN_PORTAL_OPTIONS: {
     group: 'Ministry portals',
     items: [
       { value: '/pastor', label: 'Pastoral leadership' },
+      { value: '/pastor', label: 'Staff pastoral portal (STAFF)' },
       { value: '/volunteer', label: 'Volunteer coordination' },
       { value: '/media', label: 'Media department' },
       { value: '/kitchen', label: 'Kitchen & restaurant' },
@@ -29,6 +30,8 @@ export const SIGN_IN_PORTAL_OPTIONS: {
     group: 'General access',
     items: [
       { value: '/dashboard', label: 'Operations console (upgraded staff only)' },
+      { value: '/user', label: 'Volunteer portal entry (VOLUNTEER)' },
+      { value: '/user', label: 'General user portal entry (USER)' },
       { value: '/user', label: 'Member portal' },
     ],
   },
