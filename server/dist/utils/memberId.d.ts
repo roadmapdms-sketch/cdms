@@ -1,6 +1,7 @@
+/** Total length including prefix (prefix + 21 hex digits). */
+export declare const MEMBER_ID_LENGTH = 25;
 /**
- * Generates stable-looking member IDs compatible with legacy expectations.
- * Example: mem_a1b2c3d4e5f6
+ * Generates opaque member IDs: fixed 25 characters (`mem_` + 21 hex).
  */
 export declare function generateMemberId(): string;
 //# sourceMappingURL=memberId.d.ts.map
