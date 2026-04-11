@@ -11,6 +11,7 @@ import {
   RoleDashboardLoading,
   FetchNotice,
 } from '../../components/RoleDashboardLayout';
+import { formatZAR } from '../../utils/currency';
 
 interface FinancialStats {
   totalBudget: number;
@@ -66,9 +67,9 @@ const AccountantDashboard: React.FC = () => {
       <FetchNotice error={error} onRetry={fetchFinancialStats} />
       <DashboardSection title="Financial overview">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <StatCard label="Total budget" value={`₦${stats.totalBudget.toLocaleString()}`} />
-          <StatCard label="Monthly income" value={`₦${stats.monthlyIncome.toLocaleString()}`} />
-          <StatCard label="Total expenses" value={`₦${stats.totalExpenses.toLocaleString()}`} />
+          <StatCard label="Total budget" value={formatZAR(stats.totalBudget)} />
+          <StatCard label="Monthly income" value={formatZAR(stats.monthlyIncome)} />
+          <StatCard label="Total expenses" value={formatZAR(stats.totalExpenses)} />
           <StatCard label="Pending approvals" value={stats.pendingApprovals} />
         </div>
       </DashboardSection>
@@ -116,7 +117,7 @@ const AccountantDashboard: React.FC = () => {
                       transaction.type === 'Giving' ? 'text-emerald-400' : 'text-red-300'
                     }`}
                   >
-                    ₦{transaction.amount.toLocaleString()}
+                    {formatZAR(transaction.amount)}
                   </td>
                 </tr>
               ))}

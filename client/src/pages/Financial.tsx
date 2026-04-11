@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from '../config/api';
+import { formatZAR } from '../utils/currency';
 
 interface FinancialRecord {
   id: string;
@@ -219,11 +220,15 @@ const Financial: React.FC = () => {
 
   const handleGenerateReport = async (reportData: any) => {
     try {
-      const response = await axios.post(`${API_BASE_URL}/financial/reports/generate`, reportData);
-      
-      if (reportData.format === 'CSV') {
-        // Create download link for CSV
-        const blob = new Blob([response.data], { type: 'text/csv' });
+      const fmt = reportData.format as string;
+      const response = await axios.post(
+        `${API_BASE_URL}/financial/reports/generate`,
+        reportData,
+        fmt === 'XLSX' ? { responseType: 'arraybuffer' } : {}
+      );
+
+      if (fmt === 'CSV') {
+        const blob = new Blob([response.data], { type: 'text/csv;charset=utf-8' });
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -232,8 +237,20 @@ const Financial: React.FC = () => {
         a.click();
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
+      } else if (fmt === 'XLSX') {
+        const blob = new Blob([response.data], {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'financial-report.xlsx';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
       }
-      
+
       setShowReportModal(false);
     } catch (err: any) {
       setError(err.response?.data?.error?.message || 'Failed to generate report');
@@ -295,7 +312,7 @@ const Financial: React.FC = () => {
             <div className="flex items-center">
               <div className="flex-1">
                 <p className="text-sm font-medium text-gray-600">Total Income</p>
-                <p className="text-2xl font-bold text-green-600">${stats.totalIncome.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-green-600">{formatZAR(stats.totalIncome)}</p>
               </div>
             </div>
           </div>
@@ -304,7 +321,7 @@ const Financial: React.FC = () => {
             <div className="flex items-center">
               <div className="flex-1">
                 <p className="text-sm font-medium text-gray-600">Total Expenses</p>
-                <p className="text-2xl font-bold text-red-600">${stats.totalExpenses.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-red-600">{formatZAR(stats.totalExpenses)}</p>
               </div>
             </div>
           </div>
@@ -313,7 +330,7 @@ const Financial: React.FC = () => {
             <div className="flex items-center">
               <div className="flex-1">
                 <p className="text-sm font-medium text-gray-600">Net Income</p>
-                <p className="text-2xl font-bold text-blue-600">${stats.netIncome.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-blue-600">{formatZAR(stats.netIncome)}</p>
               </div>
             </div>
           </div>
@@ -342,19 +359,19 @@ const Financial: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="text-center">
                 <p className="text-sm text-gray-600">Tithes</p>
-                <p className="text-lg font-bold text-blue-600">${stats.breakdown.tithes.toFixed(2)}</p>
+                <p className="text-lg font-bold text-blue-600">{formatZAR(stats.breakdown.tithes)}</p>
               </div>
               <div className="text-center">
                 <p className="text-sm text-gray-600">Offerings</p>
-                <p className="text-lg font-bold text-purple-600">${stats.breakdown.offerings.toFixed(2)}</p>
+                <p className="text-lg font-bold text-purple-600">{formatZAR(stats.breakdown.offerings)}</p>
               </div>
               <div className="text-center">
                 <p className="text-sm text-gray-600">Donations</p>
-                <p className="text-lg font-bold text-green-600">${stats.breakdown.donations.toFixed(2)}</p>
+                <p className="text-lg font-bold text-green-600">{formatZAR(stats.breakdown.donations)}</p>
               </div>
               <div className="text-center">
                 <p className="text-sm text-gray-600">Fees</p>
-                <p className="text-lg font-bold text-orange-600">${stats.breakdown.fees.toFixed(2)}</p>
+                <p className="text-lg font-bold text-orange-600">{formatZAR(stats.breakdown.fees)}</p>
               </div>
             </div>
           </div>
@@ -375,7 +392,7 @@ const Financial: React.FC = () => {
                       className="w-full bg-blue-500 rounded-t"
                       style={{ height: `${(data.income / Math.max(...monthlyData.map(d => d.income))) * 100}%` }}
                     />
-                    <div className="text-xs text-gray-700">${data.income.toFixed(0)}</div>
+                    <div className="text-xs text-gray-700">{formatZAR(data.income)}</div>
                   </div>
                 ))}
               </div>
@@ -399,7 +416,7 @@ const Financial: React.FC = () => {
                     <p className="text-sm text-gray-600">{donor.member?.email || 'No email'}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-lg font-bold text-green-600">${donor.totalAmount.toFixed(2)}</p>
+                    <p className="text-lg font-bold text-green-600">{formatZAR(donor.totalAmount)}</p>
                     <p className="text-xs text-gray-500">{donor.transactionCount} transactions</p>
                   </div>
                 </div>
@@ -565,7 +582,7 @@ const Financial: React.FC = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        ${record.amount.toFixed(2)}
+                        {formatZAR(record.amount)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {record.paymentMethod || 'N/A'}
@@ -785,10 +802,11 @@ const Financial: React.FC = () => {
                 </div>
                 
                 <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Format</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Downloads</label>
                   <select name="format" className="input">
-                    <option value="JSON">JSON</option>
-                    <option value="CSV">CSV Download</option>
+                    <option value="JSON">JSON (preview in browser)</option>
+                    <option value="CSV">CSV spreadsheet</option>
+                    <option value="XLSX">Excel workbook (.xlsx)</option>
                   </select>
                 </div>
                 

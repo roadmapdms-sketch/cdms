@@ -9,6 +9,7 @@ import {
   RoleDashboardLoading,
   FetchNotice,
 } from '../../components/RoleDashboardLayout';
+import { formatZAR } from '../../utils/currency';
 
 interface MemberData {
   name: string;
@@ -94,8 +95,8 @@ const MemberDashboard: React.FC = () => {
 
       <DashboardSection title="Your summary">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard label="Giving this month" value={`₦${memberData.givingHistory.monthly.toLocaleString()}`} />
-          <StatCard label="Giving this year" value={`₦${memberData.givingHistory.yearly.toLocaleString()}`} />
+          <StatCard label="Giving this month" value={formatZAR(memberData.givingHistory.monthly)} />
+          <StatCard label="Giving this year" value={formatZAR(memberData.givingHistory.yearly)} />
           <StatCard label="Attendance this month" value={memberData.attendanceRecord.monthly} />
           <StatCard label="Attendance this year" value={memberData.attendanceRecord.yearly} />
         </div>

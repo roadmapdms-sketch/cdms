@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import { authMiddleware, requireRole, requireRootAdmin, AuthRequest } from '../middleware/auth';
 import { FINANCE_CORE_ROLES } from '../constants/accessRoles';
 import { syncUsersToMembers } from '../services/syncUsersToMembers';
+import { formatZAR } from '../utils/currency';
 
 const prisma = new PrismaClient();
 
@@ -328,7 +329,7 @@ adminDashboardRouter.get(
         at: g.createdAt.toISOString(),
         kind: 'giving',
         title: g.description || `Giving (${g.type})`,
-        detail: `₦${g.amount.toLocaleString()}`,
+        detail: formatZAR(Number(g.amount)),
         portalId: 'finance',
       });
     }
@@ -337,7 +338,7 @@ adminDashboardRouter.get(
         at: x.createdAt.toISOString(),
         kind: 'expense',
         title: x.description,
-        detail: `${x.category} · ${x.status} · ₦${x.amount.toLocaleString()}`,
+        detail: `${x.category} · ${x.status} · ${formatZAR(Number(x.amount))}`,
         portalId: 'finance',
       });
     }

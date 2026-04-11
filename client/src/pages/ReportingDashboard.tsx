@@ -4,6 +4,7 @@ import axios, { isAxiosError } from 'axios';
 import { API_BASE_URL } from '../config/api';
 import { canAccessFinanceModules } from '../utils/roles';
 import ModulePageHeader from '../components/ModulePageHeader';
+import { formatZAR } from '../utils/currency';
 
 /** Reporting hub: KPIs from existing reports API + shortcuts to operational modules. */
 const ReportingDashboard: React.FC = () => {
@@ -102,11 +103,11 @@ const ReportingDashboard: React.FC = () => {
             <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-3">
               <div className="card p-4">
                 <p className="text-sm text-gray-500">Total giving</p>
-                <p className="text-xl font-semibold text-green-700">₦{Number(f.totalGiving || 0).toLocaleString()}</p>
+                <p className="text-xl font-semibold text-green-700">{formatZAR(Number(f.totalGiving || 0))}</p>
               </div>
               <div className="card p-4">
                 <p className="text-sm text-gray-500">Total expenses</p>
-                <p className="text-xl font-semibold text-red-700">₦{Number(f.totalExpenses || 0).toLocaleString()}</p>
+                <p className="text-xl font-semibold text-red-700">{formatZAR(Number(f.totalExpenses || 0))}</p>
               </div>
               <div className="card p-4">
                 <p className="text-sm text-gray-500">Budget utilization</p>

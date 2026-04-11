@@ -10,6 +10,7 @@ import {
   DataPanel,
   RoleDashboardLoading,
 } from '../../components/RoleDashboardLayout';
+import { formatZAR } from '../../utils/currency';
 
 interface AdminStats {
   totalMembers: number;
@@ -239,8 +240,8 @@ const AdminDashboard: React.FC = () => {
           />
           <StatCard
             label="Budget envelope"
-            value={`₦${stats.totalBudget.toLocaleString()}`}
-            hint={`₦${stats.monthlyIncome.toLocaleString()} recorded this month`}
+            value={formatZAR(stats.totalBudget)}
+            hint={`${formatZAR(stats.monthlyIncome)} recorded this month`}
           />
           <StatCard label="Attendance signal" value={`${stats.attendanceRate}%`} />
           <StatCard label="Upcoming events" value={stats.upcomingEvents} />
@@ -264,7 +265,7 @@ const AdminDashboard: React.FC = () => {
             <div className="space-y-3">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-zinc-400">Giving recorded</span>
-                <span className="font-semibold text-emerald-400">₦{stats.monthlyIncome.toLocaleString()}</span>
+                <span className="font-semibold text-emerald-400">{formatZAR(stats.monthlyIncome)}</span>
               </div>
               <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-800">
                 <div className="h-full w-[70%] rounded-full bg-gradient-to-r from-emerald-600 to-emerald-400" />

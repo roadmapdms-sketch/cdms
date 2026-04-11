@@ -9,6 +9,7 @@ const client_1 = require("@prisma/client");
 const auth_1 = require("../middleware/auth");
 const accessRoles_1 = require("../constants/accessRoles");
 const syncUsersToMembers_1 = require("../services/syncUsersToMembers");
+const currency_1 = require("../utils/currency");
 const prisma = new client_1.PrismaClient();
 const PASTOR_DASHBOARD_ROLES = ['ADMIN', 'PASTOR', 'STAFF'];
 const VOLUNTEER_COORD_ROLES = ['ADMIN', 'VOLUNTEER_COORDINATOR'];
@@ -267,7 +268,7 @@ exports.adminDashboardRouter.get('/overview', auth_1.authMiddleware, (0, auth_1.
                 at: g.createdAt.toISOString(),
                 kind: 'giving',
                 title: g.description || `Giving (${g.type})`,
-                detail: `₦${g.amount.toLocaleString()}`,
+                detail: (0, currency_1.formatZAR)(Number(g.amount)),
                 portalId: 'finance',
             });
         }
@@ -276,7 +277,7 @@ exports.adminDashboardRouter.get('/overview', auth_1.authMiddleware, (0, auth_1.
                 at: x.createdAt.toISOString(),
                 kind: 'expense',
                 title: x.description,
-                detail: `${x.category} · ${x.status} · ₦${x.amount.toLocaleString()}`,
+                detail: `${x.category} · ${x.status} · ${(0, currency_1.formatZAR)(Number(x.amount))}`,
                 portalId: 'finance',
             });
         }

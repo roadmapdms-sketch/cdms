@@ -12,6 +12,7 @@ import {
 import { useReportsDashboardStats } from '../../hooks/useReportsDashboardStats';
 import { PortalDashboardToolbar } from '../../components/PortalDashboardToolbar';
 import { UpcomingEventsPanel } from '../../components/UpcomingEventsPanel';
+import { formatZAR } from '../../utils/currency';
 
 const ManagementDashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -40,8 +41,8 @@ const ManagementDashboard: React.FC = () => {
 
       <DashboardSection title="Financial signal (period)">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <StatCard label="Total giving recorded" value={`₦${(f?.totalGiving ?? 0).toLocaleString()}`} />
-          <StatCard label="Total expenses" value={`₦${(f?.totalExpenses ?? 0).toLocaleString()}`} />
+          <StatCard label="Total giving recorded" value={formatZAR(f?.totalGiving ?? 0)} />
+          <StatCard label="Total expenses" value={formatZAR(f?.totalExpenses ?? 0)} />
           <StatCard label="Volunteer engagement" value={o?.volunteerEngagementRate ?? '—'} />
         </div>
       </DashboardSection>

@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { API_BASE_URL } from '../config/api';
 import { canAccessFinanceModules } from '../utils/roles';
+import { formatZAR } from '../utils/currency';
 
 interface DashboardStats {
   overview: {
@@ -180,9 +181,9 @@ const Dashboard: React.FC = () => {
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-600">Total Income</p>
-                    <p className="text-2xl font-bold text-[#7a0f1a]">${dashboardStats.financial.totalGiving.toFixed(2)}</p>
+                    <p className="text-2xl font-bold text-[#7a0f1a]">{formatZAR(dashboardStats.financial.totalGiving)}</p>
                     <p className="text-xs text-gray-500">
-                      ${dashboardStats.financial.totalExpenses.toFixed(2)} expenses
+                      {formatZAR(dashboardStats.financial.totalExpenses)} expenses
                     </p>
                   </div>
                 </div>
@@ -202,11 +203,11 @@ const Dashboard: React.FC = () => {
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Total Budget</span>
-                    <span className="text-sm font-medium text-[#7a0f1a]">${dashboardStats.financial.totalBudget.toFixed(2)}</span>
+                    <span className="text-sm font-medium text-[#7a0f1a]">{formatZAR(dashboardStats.financial.totalBudget)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Total Spent</span>
-                    <span className="text-sm font-medium text-[#e7b123]">${dashboardStats.financial.totalSpent.toFixed(2)}</span>
+                    <span className="text-sm font-medium text-[#e7b123]">{formatZAR(dashboardStats.financial.totalSpent)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Budget Utilization</span>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { API_BASE_URL } from '../config/api';
 import axios from 'axios';
+import { formatZAR } from '../utils/currency';
 
 interface InventoryItem {
   id: string;
@@ -279,7 +280,7 @@ const Inventory: React.FC = () => {
             <div className="flex items-center">
               <div className="flex-1">
                 <p className="text-sm font-medium text-gray-600">Total Value</p>
-                <p className="text-2xl font-bold text-purple-600">${stats.totalValue.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-purple-600">{formatZAR(stats.totalValue)}</p>
               </div>
             </div>
           </div>
@@ -493,7 +494,7 @@ const Inventory: React.FC = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        ${item.currentValue ? item.currentValue.toFixed(2) : 'N/A'}
+                        {item.currentValue != null ? formatZAR(item.currentValue) : 'N/A'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         {item.status === 'AVAILABLE' && (

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { API_BASE_URL } from '../config/api';
 import axios from 'axios';
+import { formatZAR } from '../utils/currency';
 
 interface Expense {
   id: string;
@@ -291,7 +292,7 @@ const Expenses: React.FC = () => {
             <div className="flex items-center">
               <div className="flex-1">
                 <p className="text-sm font-medium text-gray-600">Total Amount</p>
-                <p className="text-2xl font-bold text-purple-600">${stats.totalAmount.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-purple-600">{formatZAR(stats.totalAmount)}</p>
               </div>
             </div>
           </div>
@@ -310,7 +311,7 @@ const Expenses: React.FC = () => {
                     <p className="font-medium text-gray-900">{expense.description}</p>
                     <p className="text-sm text-gray-600">
                       {expense.vendor && `Vendor: ${expense.vendor} • `}
-                      ${expense.amount.toFixed(2)} • {new Date(expense.date).toLocaleDateString()}
+                      {formatZAR(expense.amount)} • {new Date(expense.date).toLocaleDateString()}
                     </p>
                     {expense.event && (
                       <p className="text-xs text-gray-500">Event: {expense.event.title}</p>
@@ -504,7 +505,7 @@ const Expenses: React.FC = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        ${expense.amount.toFixed(2)}
+                        {formatZAR(expense.amount)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {expense.vendor || 'N/A'}

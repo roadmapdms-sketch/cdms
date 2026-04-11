@@ -1,4 +1,5 @@
 import express from 'express';
+import ExcelJS from 'exceljs';
 import { PrismaClient } from '@prisma/client';
 import { authMiddleware, requireRole } from '../middleware/auth';
 import { FINANCE_CORE_ROLES } from '../constants/accessRoles';
@@ -484,6 +485,37 @@ router.post('/reports/generate', async (req, res) => {
       res.setHeader('Content-Type', 'text/csv');
       res.setHeader('Content-Disposition', 'attachment; filename=financial-report.csv');
       res.send(csvHeader + csvData);
+    } else if (format === 'XLSX') {
+      const workbook = new ExcelJS.Workbook();
+      const sheet = workbook.addWorksheet('Financial report');
+      sheet.columns = [
+        { header: 'Date', key: 'date', width: 22 },
+        { header: 'Type', key: 'type', width: 12 },
+        { header: 'Member', key: 'member', width: 28 },
+        { header: 'Amount', key: 'amount', width: 14 },
+        { header: 'Payment method', key: 'paymentMethod', width: 16 },
+        { header: 'Description', key: 'description', width: 40 },
+        { header: 'Status', key: 'status', width: 12 },
+      ];
+      sheet.getRow(1).font = { bold: true };
+      for (const record of records) {
+        sheet.addRow({
+          date: record.date,
+          type: record.type,
+          member: record.member ? `${record.member.firstName} ${record.member.lastName}` : 'N/A',
+          amount: Number(record.amount),
+          paymentMethod: record.paymentMethod || 'N/A',
+          description: record.description || '',
+          status: record.status,
+        });
+      }
+      const buffer = await workbook.xlsx.writeBuffer();
+      res.setHeader(
+        'Content-Type',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      );
+      res.setHeader('Content-Disposition', 'attachment; filename="financial-report.xlsx"');
+      res.send(Buffer.from(buffer));
     } else {
       res.json({
         report: {

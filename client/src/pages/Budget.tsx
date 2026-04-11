@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { API_BASE_URL } from '../config/api';
 import axios from 'axios';
+import { formatZAR } from '../utils/currency';
 
 interface BudgetRecord {
   id: string;
@@ -211,7 +212,7 @@ const Budget: React.FC = () => {
             <div className="flex items-center">
               <div className="flex-1">
                 <p className="text-sm font-medium text-gray-600">Total Allocated</p>
-                <p className="text-2xl font-bold text-purple-600">${stats.totalAllocated.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-purple-600">{formatZAR(stats.totalAllocated)}</p>
               </div>
             </div>
           </div>
@@ -220,7 +221,7 @@ const Budget: React.FC = () => {
             <div className="flex items-center">
               <div className="flex-1">
                 <p className="text-sm font-medium text-gray-600">Total Spent</p>
-                <p className="text-2xl font-bold text-orange-600">${stats.totalSpent.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-orange-600">{formatZAR(stats.totalSpent)}</p>
               </div>
             </div>
           </div>
@@ -251,7 +252,7 @@ const Budget: React.FC = () => {
                     <div>
                       <p className="font-medium text-gray-900">{budget.category}</p>
                       <p className="text-sm text-gray-600">
-                        Period: {budget.period} • ${budget.amount.toFixed(2)} allocated
+                        Period: {budget.period} • {formatZAR(budget.amount)} allocated
                       </p>
                       <div className="flex items-center mt-1">
                         <div className="w-32 bg-gray-200 rounded-full h-2 mr-2">
@@ -264,7 +265,7 @@ const Budget: React.FC = () => {
                           />
                         </div>
                         <span className={`text-xs ${getUtilizationColor(utilizationRate)}`}>
-                          {utilizationRate.toFixed(1)}% (${budget.spent.toFixed(2)} / ${budget.amount.toFixed(2)})
+                          {utilizationRate.toFixed(1)}% ({formatZAR(budget.spent)} / {formatZAR(budget.amount)})
                         </span>
                       </div>
                     </div>
@@ -273,7 +274,7 @@ const Budget: React.FC = () => {
                         {budget.status}
                       </span>
                       <p className="text-xs text-gray-500 mt-1">
-                        ${remaining.toFixed(2)} remaining
+                        {formatZAR(remaining)} remaining
                       </p>
                     </div>
                   </div>
@@ -449,14 +450,14 @@ const Budget: React.FC = () => {
                           {budget.period}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          ${budget.amount.toFixed(2)}
+                          {formatZAR(budget.amount)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          ${budget.spent.toFixed(2)}
+                          {formatZAR(budget.spent)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           <span className={remaining < 0 ? 'text-red-600' : 'text-green-600'}>
-                            ${remaining.toFixed(2)}
+                            {formatZAR(remaining)}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -681,12 +682,12 @@ const Budget: React.FC = () => {
               }}>
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Current Spent</label>
-                  <div className="text-sm text-gray-600">${selectedBudget.spent.toFixed(2)}</div>
+                  <div className="text-sm text-gray-600">{formatZAR(selectedBudget.spent)}</div>
                 </div>
                 
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Budget Amount</label>
-                  <div className="text-sm text-gray-600">${selectedBudget.amount.toFixed(2)}</div>
+                  <div className="text-sm text-gray-600">{formatZAR(selectedBudget.amount)}</div>
                 </div>
                 
                 <div className="mb-4">
