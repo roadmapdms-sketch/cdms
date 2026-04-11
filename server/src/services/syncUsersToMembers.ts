@@ -1,5 +1,6 @@
 import type { PrismaClient } from '@prisma/client';
 import { Prisma } from '@prisma/client';
+import { generateMemberId } from '../utils/memberId';
 
 export type SyncUsersToMembersResult = {
   /** New Member rows created from User accounts. */
@@ -50,6 +51,7 @@ export async function syncUsersToMembers(prisma: PrismaClient): Promise<SyncUser
     try {
       await prisma.member.create({
         data: {
+          id: generateMemberId(),
           firstName: u.firstName,
           lastName: u.lastName,
           email,

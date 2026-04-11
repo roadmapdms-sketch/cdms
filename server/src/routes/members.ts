@@ -2,12 +2,95 @@ import express from 'express';
 import { PrismaClient } from '@prisma/client';
 import { authMiddleware, requireRole } from '../middleware/auth';
 import { STAFF_MODULE_ROLES } from '../constants/accessRoles';
+import { generateMemberId } from '../utils/memberId';
 
 const router = express.Router();
 const prisma = new PrismaClient();
 
+/** Tries family include + createdAt order, then plain list, then id order (legacy DBs missing usable createdAt). */
+async function findMembersPage(where: Record<string, unknown>, skip: number, take: number): Promise<any[]> {
+  const w = where as any;
+  const strategies: Array<() => Promise<any[]>> = [
+    () =>
+      prisma.member.findMany({
+        where: w,
+        skip,
+        take,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          family: { include: { family: true } },
+        },
+      }),
+    () =>
+      prisma.member.findMany({
+        where: w,
+        skip,
+        take,
+        orderBy: { createdAt: 'desc' },
+      }),
+    () =>
+      prisma.member.findMany({
+        where: w,
+        skip,
+        take,
+        orderBy: { id: 'asc' },
+      }),
+  ];
+  let last: unknown;
+  for (const run of strategies) {
+    try {
+      return await run();
+    } catch (e) {
+      last = e;
+      console.warn('Members list query strategy failed; retrying with a simpler query.', e);
+    }
+  }
+  throw last;
+}
+
 router.use(authMiddleware);
 router.use(requireRole(STAFF_MODULE_ROLES));
+
+// Registered before `/:id` so paths like `/stats/...` are never treated as an id segment.
+router.get('/stats/overview', async (req, res) => {
+  try {
+    const [
+      totalMembers,
+      activeMembers,
+      newMembersThisMonth,
+      membersByStatus
+    ] = await Promise.all([
+      prisma.member.count(),
+      prisma.member.count({ where: { status: 'ACTIVE' } }),
+      prisma.member.count({
+        where: {
+          createdAt: {
+            gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+          }
+        }
+      }),
+      prisma.member.groupBy({
+        by: ['status'],
+        _count: true
+      })
+    ]);
+
+    res.json({
+      totalMembers,
+      activeMembers,
+      newMembersThisMonth,
+      membersByStatus: membersByStatus.map(item => ({
+        status: item.status,
+        count: item._count
+      }))
+    });
+  } catch (error: any) {
+    console.error('Get member stats error:', error);
+    res.status(500).json({ 
+      error: { message: 'Internal server error' } 
+    });
+  }
+});
 
 // Get all members with pagination and search
 router.get('/', async (req, res) => {
@@ -32,32 +115,8 @@ router.get('/', async (req, res) => {
       where.status = status;
     }
 
-    let members: any[] = [];
     const total = await prisma.member.count({ where });
-    try {
-      members = await prisma.member.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy: { createdAt: 'desc' },
-        include: {
-          family: {
-            include: {
-              family: true,
-            },
-          },
-        },
-      });
-    } catch (e) {
-      // Fallback for environments where family relation/table is not yet migrated.
-      console.warn('Members fetch with family include failed; retrying without family relation.', e);
-      members = await prisma.member.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy: { createdAt: 'desc' },
-      });
-    }
+    const members = await findMembersPage(where, skip, limit);
 
     res.json({
       members,
@@ -169,6 +228,7 @@ router.post('/', async (req, res) => {
 
     const member = await prisma.member.create({
       data: {
+        id: generateMemberId(),
         firstName,
         lastName,
         email,
@@ -306,47 +366,6 @@ router.delete('/:id', async (req, res) => {
     });
   } catch (error: any) {
     console.error('Delete member error:', error);
-    res.status(500).json({ 
-      error: { message: 'Internal server error' } 
-    });
-  }
-});
-
-// Get member statistics
-router.get('/stats/overview', async (req, res) => {
-  try {
-    const [
-      totalMembers,
-      activeMembers,
-      newMembersThisMonth,
-      membersByStatus
-    ] = await Promise.all([
-      prisma.member.count(),
-      prisma.member.count({ where: { status: 'ACTIVE' } }),
-      prisma.member.count({
-        where: {
-          createdAt: {
-            gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1)
-          }
-        }
-      }),
-      prisma.member.groupBy({
-        by: ['status'],
-        _count: true
-      })
-    ]);
-
-    res.json({
-      totalMembers,
-      activeMembers,
-      newMembersThisMonth,
-      membersByStatus: membersByStatus.map(item => ({
-        status: item.status,
-        count: item._count
-      }))
-    });
-  } catch (error: any) {
-    console.error('Get member stats error:', error);
     res.status(500).json({ 
       error: { message: 'Internal server error' } 
     });

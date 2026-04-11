@@ -9,6 +9,7 @@ const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const client_1 = require("@prisma/client");
 const auth_1 = require("../middleware/auth");
 const accessRoles_1 = require("../constants/accessRoles");
+const memberId_1 = require("../utils/memberId");
 const router = express_1.default.Router();
 const prisma = new client_1.PrismaClient();
 const isDev = () => process.env.NODE_ENV !== 'production';
@@ -132,6 +133,7 @@ router.post('/register', async (req, res) => {
             if (!existingMember) {
                 await prisma.member.create({
                     data: {
+                        id: (0, memberId_1.generateMemberId)(),
                         firstName,
                         lastName,
                         email,

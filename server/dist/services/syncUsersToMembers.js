@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.syncUsersToMembers = syncUsersToMembers;
 const client_1 = require("@prisma/client");
+const memberId_1 = require("../utils/memberId");
 /**
  * Creates Member records for each User that does not yet have a Member with the same email.
  * Idempotent: safe to run multiple times.
@@ -36,6 +37,7 @@ async function syncUsersToMembers(prisma) {
         try {
             await prisma.member.create({
                 data: {
+                    id: (0, memberId_1.generateMemberId)(),
                     firstName: u.firstName,
                     lastName: u.lastName,
                     email,

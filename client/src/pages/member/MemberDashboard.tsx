@@ -13,6 +13,8 @@ import {
 interface MemberData {
   name: string;
   email: string;
+  /** Set when the server linked this login to a `members` row (same email). */
+  memberId?: string | null;
   joinDate: string;
   upcomingEvents: Array<{
     title: string;
@@ -33,6 +35,7 @@ const MemberDashboard: React.FC = () => {
   const [memberData, setMemberData] = useState<MemberData>({
     name: '',
     email: '',
+    memberId: null,
     joinDate: '',
     upcomingEvents: [],
     givingHistory: { monthly: 0, yearly: 0 },
@@ -76,6 +79,15 @@ const MemberDashboard: React.FC = () => {
             {memberData.joinDate ? (
               <span className="mt-2 block text-zinc-500">Member since {memberData.joinDate}</span>
             ) : null}
+            {memberData.memberId ? (
+              <span className="mt-2 block font-mono text-xs text-zinc-500">
+                Member ID: {memberData.memberId}
+              </span>
+            ) : (
+              <span className="mt-2 block text-xs text-amber-600/90">
+                No directory profile linked yet (no Member row for your email). Staff can run sync or add you in Members.
+              </span>
+            )}
           </p>
         </div>
       </DashboardSection>

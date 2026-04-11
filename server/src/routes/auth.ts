@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import { PrismaClient, Prisma } from '@prisma/client';
 import { authMiddleware } from '../middleware/auth';
 import { REGISTRATION_ALLOWED_ROLES } from '../constants/accessRoles';
+import { generateMemberId } from '../utils/memberId';
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -149,6 +150,7 @@ router.post('/register', async (req, res) => {
       if (!existingMember) {
         await prisma.member.create({
           data: {
+            id: generateMemberId(),
             firstName,
             lastName,
             email,

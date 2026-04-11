@@ -730,6 +730,8 @@ memberPortalRouter.get(
       res.json({
         name: displayName,
         email: user.email,
+        /** Directory row id (`mem_…`) when a Member exists for this login email; otherwise null. */
+        memberId: member?.id ?? null,
         joinDate: user.createdAt.toISOString().slice(0, 10),
         upcomingEvents: upcomingEvents.map((e) => ({
           title: e.title,
