@@ -56,9 +56,7 @@ router.get('/', async (req, res) => {
                     },
                     user: {
                         select: {
-                            id: true,
-                            firstName: true,
-                            lastName: true
+                            id: true
                         }
                     }
                 },
@@ -130,7 +128,11 @@ router.post('/', async (req, res) => {
             },
             include: {
                 member: true,
-                user: true
+                user: {
+                    select: {
+                        id: true
+                    }
+                }
             }
         });
         res.status(201).json(record);
@@ -156,7 +158,11 @@ router.put('/:id', async (req, res) => {
             },
             include: {
                 member: true,
-                user: true
+                user: {
+                    select: {
+                        id: true
+                    }
+                }
             }
         });
         res.json(record);
@@ -270,9 +276,7 @@ router.get('/follow-ups', async (req, res) => {
                 },
                 user: {
                     select: {
-                        id: true,
-                        firstName: true,
-                        lastName: true
+                        id: true
                     }
                 }
             },
@@ -335,7 +339,11 @@ router.get('/:id', async (req, res) => {
             where: { id: req.params.id },
             include: {
                 member: true,
-                user: true
+                user: {
+                    select: {
+                        id: true
+                    }
+                }
             }
         });
         if (!record) {
