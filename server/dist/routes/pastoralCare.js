@@ -41,31 +41,98 @@ router.get('/', async (req, res) => {
                 where.createdAt.lte = new Date(dateTo);
             }
         }
-        const [records, total] = await Promise.all([
-            prisma.pastoralCareRecord.findMany({
-                where,
-                include: {
-                    member: {
-                        select: {
-                            id: true,
-                            firstName: true,
-                            lastName: true,
-                            email: true,
-                            phone: true
+        let records = [];
+        let total = 0;
+        try {
+            [records, total] = await Promise.all([
+                prisma.pastoralCareRecord.findMany({
+                    where,
+                    include: {
+                        member: {
+                            select: {
+                                id: true,
+                                firstName: true,
+                                lastName: true,
+                                email: true,
+                                phone: true
+                            }
+                        },
+                        user: {
+                            select: {
+                                id: true
+                            }
                         }
                     },
-                    user: {
-                        select: {
-                            id: true
-                        }
-                    }
-                },
-                orderBy: { createdAt: 'desc' },
-                skip,
-                take: Number(limit)
-            }),
-            prisma.pastoralCareRecord.count({ where })
-        ]);
+                    orderBy: { createdAt: 'desc' },
+                    skip,
+                    take: Number(limit)
+                }),
+                prisma.pastoralCareRecord.count({ where })
+            ]);
+        }
+        catch (queryError) {
+            // Legacy databases can still have old camelCase/lowercase column mismatches.
+            // Fall back to a minimal query so the records page remains usable.
+            if (queryError?.code !== 'P2022') {
+                throw queryError;
+            }
+            if (status && status !== 'OPEN') {
+                records = [];
+                total = 0;
+            }
+            else {
+                const legacyConditions = [];
+                if (search) {
+                    const searchTerm = `%${String(search)}%`;
+                    legacyConditions.push(client_1.Prisma.sql `(
+              COALESCE(reason, '') ILIKE ${searchTerm}
+              OR COALESCE(details, '') ILIKE ${searchTerm}
+              OR COALESCE(outcome, '') ILIKE ${searchTerm}
+            )`);
+                }
+                if (type) {
+                    legacyConditions.push(client_1.Prisma.sql `caretype = ${String(type)}`);
+                }
+                if (memberId) {
+                    legacyConditions.push(client_1.Prisma.sql `memberid = ${String(memberId)}`);
+                }
+                if (dateFrom) {
+                    legacyConditions.push(client_1.Prisma.sql `createdat >= ${new Date(String(dateFrom))}`);
+                }
+                if (dateTo) {
+                    legacyConditions.push(client_1.Prisma.sql `createdat <= ${new Date(String(dateTo))}`);
+                }
+                const whereClause = legacyConditions.length
+                    ? client_1.Prisma.sql `WHERE ${client_1.Prisma.join(legacyConditions, ' AND ')}`
+                    : client_1.Prisma.sql ``;
+                const legacyRecordsPromise = prisma.$queryRaw(client_1.Prisma.sql `
+          SELECT
+            id,
+            memberid AS "memberId",
+            pastorid AS "userId",
+            caretype AS "type",
+            COALESCE(details, reason, '') AS "description",
+            'OPEN'::text AS "status",
+            followupdate AS "followUpDate",
+            outcome AS "notes",
+            createdat AS "createdAt",
+            createdat AS "updatedAt"
+          FROM pastoral_care_records
+          ${whereClause}
+          ORDER BY createdat DESC
+          OFFSET ${skip}
+          LIMIT ${Number(limit)}
+        `);
+                const legacyCountPromise = prisma.$queryRaw(client_1.Prisma.sql `
+          SELECT COUNT(*)::bigint AS count
+          FROM pastoral_care_records
+          ${whereClause}
+        `);
+                const [legacyRecords, legacyCountRows] = await Promise.all([legacyRecordsPromise, legacyCountPromise]);
+                records = legacyRecords;
+                total = Number(legacyCountRows[0]?.count ?? 0);
+            }
+        }
         const pages = Math.ceil(total / Number(limit));
         res.json({
             records,
